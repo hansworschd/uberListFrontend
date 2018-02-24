@@ -27,5 +27,5 @@ Hier stehen die Userdaten
 
   Bedenke das die Seite für mobile Anwendungen optimiert ist/sein soll - keiner wird die App häufig am Rechner nutzen, sondern viel mehr am Handy.
 
-  Beim Commit und Pull immer einen Sinnvollen Kommentar abgeben ;)
+  Beim Commit und Push immer einen Sinnvollen Kommentar abgeben ;)
 -->

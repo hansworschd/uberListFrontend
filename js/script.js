@@ -1,6 +1,63 @@
 /**
 	Login von Lukas
 */
+$( document ).ready(function() {
+	checkLogin();
+});
+
+function loadUserView(){
+	$.ajax({
+		url: "userView.html",
+		dataType: "text"
+	}).fail(function() {
+		alert( "error" );
+	}).done(function(data) {
+		document.querySelector("#user-div").innerHTML = data;
+	});
+}
+
+function loadListView(){
+	$.ajax({
+		url: "listView.html",
+		dataType: "text"
+	}).fail(function() {
+		alert( "error" );
+	}).done(function(data) {
+		document.querySelector("#user-div").innerHTML = data;
+	});
+}
+
+function checkLogin(){
+	var login = true;
+	var mainContent = document.querySelector("#myMainContent");
+	var html = "Bitte warten...";
+	mainContent.innerHTML = html;
+
+	if(login){
+		$.ajax({
+			url: "mainView.html",
+			dataType: "html"
+		}).fail(function() {
+			alert( "error" );
+		}).done(function(data) {
+			mainContent.innerHTML = data;
+			loadUserView();
+			loadListView();
+		});
+	}
+	else{
+		$.ajax({
+			url: "login.html",
+			dataType: "html"
+		}).fail(function() {
+			alert( "error" );
+		}).done(function(data) {
+			mainContent.innerHTML = data;
+		});
+	}
+
+}
+
 $( "#form-login" ).submit(function( event ) {
 	var elements = $( this ).serializeArray();
 	//elements[0] => usernameInput

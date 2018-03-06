@@ -28,14 +28,212 @@
 	<div class="row justify-content-md-center">
 		<div class="col-md-4">
 			<div class="card myMainCard">
-				<div class="card-body" id="myMainContent"> <!-- alles hier rein! -->
+				<div class="card-body" id="mainContent">
+					<h4>uberList </h4>
+					<ul class="nav nav-tabs" role="tablist" id="myMainContentTab">
+						<li class="nav-item">
+							<a class="nav-link active" id="listen-tab" data-toggle="tab" href="#listen-div" role="tab" aria-controls="listen-div" aria-selected="true"><i class="fas fa-list-alt"></i></a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" id="user-tab" data-toggle="tab" href="#user-div" role="tab" aria-controls="user-div" aria-selected="false"><i class="far fa-user"></i></a>
+						</li>
+
+						<!-- leere, versteckte Tabs für Darstellung von extras -->
+						<li class="nav-item" style="show:hidden;">
+							<a class="nav-link" id="list-tab" data-toggle="tab" href="#list-div" role="tab" aria-controls="list-div" aria-selected="false"></a>
+						</li>
+					</ul>
+					<div class="tab-content">
+						<!-- Darstellung der Listen des Users -->
+						<div class="tab-pane fade show active" id="listen-div" role="tabpanel" aria-labelledby="listen-tab">
+							<div id="showListen">
+								<ul class="list-unstyled" id="listView-list-ul"></ul>
+								<input type="text" class="form-control" onchange="addNewList(this.value)">
+							</div>
+							<div id="showElements" style="display:none">
+								<input type="hidden" id="myCurrentList">
+								<ul class="list-unstyled" id="listElements-element-ul"></ul>
+								<input type="text" class="form-control" onchange="addNewList(this.value)">
+							</div>
+						</div>
+						<!-- Darstellung des Users -->
+						<div class="tab-pane fade" id="user-div" role="tabpanel" aria-labelledby="user-tab">
+							<form method="post" class="stacked">
+								<div class="column">
+									<label for="user_username">
+										Benutzername:
+										<span class="required">*</span>
+									</label>
+									<div >
+										<input type="text" ID="user_username" name="user_username">
+									</div>
+
+									<label for="user_password">
+										Passwort:
+										<span class="required">*</span>
+									</label>
+									<div >
+										<input type="password" ID="user_password" name="user_password">
+									</div>
+
+									<h4>Anschrift ändern</h4>
+									<label for="user_name">
+										Vorname und Nachname:
+
+									</label>
+									<div >
+										<input type="text" ID="user_name" name="user_name">
+									</div>
+
+									<label for="user_anschrift">
+										Straße und Hausnummer:
+									</label>
+									<div >
+										<input type="text" ID="user_anschrift" name="user_anschrift">
+									</div>
+
+									<label for="user_plz">
+										Postleitzahl:
+									</label>
+									<div >
+										<input type="text" ID="user_plz" name="user_plz" length="5">
+									</div>
+
+									<label for="user_ort">
+										Ort:
+									</label>
+									<div >
+										<input type="text" ID="user_ort" name="user_ort">
+									</div>
+
+									<h4>Kontaktdaten ändern</h4>
+
+									<label for="user_telefon">
+										Telefonnummer:
+									</label>
+									<div >
+										<input type="text" ID="user_telefon" name="user_telefon">
+									</div>
+
+									<label for="user_email">
+										E-Mailadresse:
+									</label>
+									<div >
+										<input type="text" ID="user_email" name="user_email">
+									</div>
+
+									<label for="user_geburtsdatum">
+										Geburtsdatum:
+									</label>
+									<div >
+										<input type="text" ID="user_geburtsdatum" name="user_geburtsdatum">
+									</div>
+
+									<!--Button zum Abschicken-->
+									<div >
+										<button class="icon-pencil" type="submit" value="save" name="action">
+											Änderungen speichern
+										</button>
+									</div>
+								</div>
+							</form>
+						</div>
+						<!--- Darstellung der Elemente einer Liste -->
+						<div class="tab-pane fade" id="list-div" role="tabpanel" aria-labelledby="list-tab"></div>
+
+					</div>
+				</div>
+				<div class="card-body" id="loginContent">
+					<h4>uberList
+						<small>Deine geteilte ToDo Liste</small>
+					</h4>
+					<ul class="nav nav-tabs" role="tablist">
+						<li class="nav-item">
+							<a class="nav-link active" id="login-tab" data-toggle="tab" href="#login" role="tab" aria-controls="login" aria-selected="true">Login</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" id="register-tab" data-toggle="tab" href="#register" role="tab" aria-controls="register" aria-selected="false">Register</a>
+						</li>
+					</ul>
+					<div class="tab-content">
+						<div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
+							<form id="form-login" action="mainView.php" method="post">
+								<div class="form-group">
+									<label>Username/Email</label> <input type="text" class="form-control" id="loginText" placeholder="Enter username / Email" name="loginUsername">
+								</div>
+								<div class="form-group">
+									<label>Password</label> <input type="password" class="form-control" name="loginPassword">
+								</div>
+								<div class="form-check">
+									<input type="checkbox" class="form-check-input" id="keepLogin"> <label class="form-check-label">Stay logged in</label>
+								</div>
+								<button type="submit" class="btn btn-primary">Login</button>
+							</form>
+						</div>
+						<div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
+							<form id="form-register" method="post">
+								<div class="form-group">
+									<label for="exampleInputEmail1">Username</label> <input type="text" class="form-control" id="usernameInput" placeholder="Username" name="username">
+								</div>
+								<div class="form-group">
+									<label for="exampleInputEmail1">Email address</label> <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email" name="email">
+								</div>
+								<div class="form-group">
+									<label for="exampleInputPassword1">Password</label> <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" name="password">
+								</div>
+								<div class="form-group">
+									<label for="exampleInputPassword1">Password Check</label> <input type="password" class="form-control" id="exampleInputPasswordCheck" placeholder="Password Check">
+								</div>
+								<button type="submit" class="btn btn-primary">Register</button>
+							</form>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
 	</div>
-</div>
 
-<!-- Von Lukas Ewald -->
+	<div class="modal" tabindex="-1" role="dialog" id="listDetailsModal">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title"></h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p>Modal body text goes here.</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary">Save changes</button>
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal" tabindex="-1" role="dialog" id="elementsDetailsModal">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title"></h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p>Modal body text goes here.</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary">Save changes</button>
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Von Lukas Ewald -->
 </body>
 <!-- Eigenes JS -->
 <script src="js/script.js"></script>

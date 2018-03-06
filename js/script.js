@@ -15,15 +15,26 @@
  *  *Update Elemente
  *  *Update Liste
  *  *Update User
+ *
+ *  Vorgehen: View laden - Daten laden.
+ *
+ *  Sprich: zuerst wird eine "leere" Seite angezeigt, und diese dann mit Daten gefüllt.
  */
 
 
 // region Globales und document Ready
+/**
+ * Globale Variablen
+ */
 let USERTOKEN = null;
 let USERNAME = null;
 
-//Document Ready
+/**
+ * Document Ready - Prüfe Login
+ */
 $( document ).ready(function() {
+	document.querySelector("#mainContent").style.display = 'none';
+
 	checkLogin();
 });
 
@@ -34,12 +45,14 @@ $.ajaxSetup({
 	data: {
 		token: USERTOKEN,
 	},
-	dataType: "jsonp"
 });
 
 //endregion
 
 //region login und Startseite
+/**
+ * Check den Login --> True: mainView, false: Login
+ */
 function checkLogin(){
 	let username = "lukas";
 	let password = "123";
@@ -50,79 +63,51 @@ function checkLogin(){
 		url: "demo/login.json", //TODO: Change URI
 		method:"get",
 		dataType: "json"
-	}).fail(function() {
+	}).fail(function(err) {
+		console.log(err);
 		alert( "error" );
-		viewLogin(false);
 	}).done(function(dat) {
 		USERTOKEN = dat.token;
 		USERNAME = dat.username;
 
-		if(USERTOKEN !== null){
-			viewMain();
-		}
-		else{
-			viewLogin(false);
-		}
-	});
-
-
-}
-
-function viewLogin(){
-	$.ajax({
-		url: "login.html",
-		dataType: "html"
-	}).fail(function() {
-		alert( "error" );
-	}).done(function(data) {
-		document.querySelector("#myMainContent").innerHTML = data; //lädt Daten in HTML
-	});
-}
-
-function viewMain() {
-	$.ajax({
-		url: "mainView.html", //TODO: Change URI
-		dataType: "html"
-	}).fail(function() {
-		alert( "error" );
-	}).done(function(data) {
-		document.querySelector("#myMainContent").innerHTML = data;
-		viewUser();
-		viewAllLists();
-	}).always(function() {
-		document.querySelector("#myUsernameP").innerHTML= "Test";
+		//Ändern der Darstellung zwischen Main (Normale Seiten) und Login (ausgeloggt)
+		//Ändern der Darstellung zwischen Main (Normale Seiten) und Login (ausgeloggt)
+		document.querySelector("#mainContent").style.display = 'block';
+		document.querySelector("#loginContent").style.display = 'none';
+		getUserData();
+		getLitsts();
 	});
 }
 //endregion
 
 
 //region Liste
-function viewAllLists(){
-	$.ajax({
-		url: "listViewAll.html",
-		dataType: "html"
-	}).fail(function() {
-		alert( "error" );
-	}).done(function(data) {
-		document.querySelector("#listen-div").innerHTML = data;
-		getLitsts();
-	});
-}
-
-function getLitsts(){
+/**
+ * Bekomme alle Listen
+ */
+function getLitsts() {
 	$.ajax({
 		url: "demo/lists.json", //TODO: Change URI
-	}).fail(function() {
+	}).fail(function(err) {
 		alert( "error" );
+		console.log(err)
 	}).done(function(data) {
 		let ul = document.querySelector("#listView-list-ul");
 		ul.innerHTML = "";
 		for(let i = 0; i<data.length;i++){
-			ul.innerHTML += `<a href="javascript:void(0)" onclick="showListDetails(${data[i].id})">${data[i].name}</a><br>`
+			ul.innerHTML += `<a href="javascript:void(0)" onclick="showElements(${data[i].id})">${data[i].name}</a><a href="javascript:void(0)" onclick="showListDetails()">Details</a></a> <br>`
 		}
 	});
 }
 
+function showListDetails(){
+	$('#listDetailsModal').modal("toggle");
+}
+
+/**
+ * Neue Liste anlegen, Parameter: Titel der Liste
+ * @param title
+ */
 function addNewList(title){
 	alert(title);
 
@@ -131,25 +116,72 @@ function addNewList(title){
 //endregion
 
 //region Elements
-function getElementsFromList(listID){
-	console.log("Hier stehen dann die Elemente von einer Liste");
+/**
+ * Lade elemente von einer ID
+ * @param listID
+ */
+function showElements(listID){
+	getElementsFromList(listID);
 }
 
-function viewList(listID){
-	getElementsFromList(listID);
+function getElementsFromList(listID){
+	$.ajax({
+		url: "demo/elements.json", //TODO: Change URI
+	}).fail(function(err) {
+		alert( "error" );
+		console.log(err)
+	}).done(function(data) {
+		document.querySelector("#myCurrentList").value= listID;
+
+		document.querySelector("#showElements").style.display = "block";
+		document.querySelector("#showListen").style.display = "none";
+
+
+		let ul = document.querySelector("#listElements-element-ul");
+		ul.innerHTML = "";
+		for(let i = 0; i<data.length;i++){
+			ul.innerHTML += `<a href="javascript:void(0)" onclick="showElementDetails(${data[i].id})">${data[i].name}</a><br>`
+		}
+	});
+}
+
+
+function showElementDetails(){
+	getElementDetails();
+
+	$('#elementsDetailsModal').modal("toggle");
+}
+
+function getElementDetails(){
+
+}
+
+function addNewElement(){
+
 }
 //endregion
 
 //region User
-function viewUser(){
+/**
+ * Lade Userdaten
+ */
+function getUserData(){
 	$.ajax({
-		url: "userView.html",
-		dataType: "text"
+		url: "demo/user.json",
+		dataType: "json"
 	}).fail(function(err) {
 		alert( "error" );
 		console.log(err);
 	}).done(function(data) {
-		document.querySelector("#user-div").innerHTML = data;
+		document.querySelector("#user_username").value = data.username;
+		document.querySelector("#user_password").value=data.password;
+		document.querySelector("#user_name").value=data.name;
+		document.querySelector("#user_anschrift").value=data.Straße;
+		document.querySelector("#user_plz").value=data.plz;
+		document.querySelector("#user_ort").value=data.Ort;
+		document.querySelector("#user_telefon").value=data.Telefonnummer;
+		document.querySelector("#user_email").value=data.Email;
+		document.querySelector("#user_geburtsdatum").value=data.Geburtsdatum;
 	});
 }
 //endregion

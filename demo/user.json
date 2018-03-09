@@ -1,12 +1,12 @@
 {
   "token": "123-124-112-1212",
-  "username": "vera",
+  "username": "Vera",
   "password": "12345",
-  "name": "vera grosch",
-  "Straße": "mühlenweg 14",
-  "PLZ": "51145",
-  "Ort":"Köln",
-  "Telefonnummer": "017643900306",
-  "Email": "veragrosch@web.de",
-  "Geburtsdatum": "05.07.1990"
+  "name": "Vera grosch",
+  "strasse": "Mühlenweg 14",
+  "plz": "51145",
+  "ort":"Köln",
+  "telefonnummer": "017643900306",
+  "email": "veragrosch@web.de",
+  "geburtsdatum": "05.07.1990"
 }

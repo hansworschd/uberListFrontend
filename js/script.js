@@ -115,9 +115,19 @@ $('.nav-tabs a').on('shown.bs.tab', function(event){
  * @param title
  */
 function addNewList(title){
-	alert(title);
+	alert("Die Liste " + title + " wird angelegt.");
 
-	console.log("Hier kommt dann ein POST");
+	$.ajax({
+		url: "demo/lists.json", //TODO: Change URI
+		type: "POST",
+		data: {},
+
+	}).fail(function(err) {
+		alert( "error" );
+		console.log(err)
+	}).done(function(data) {
+		getLitsts();
+	});
 }
 //endregion
 
@@ -162,8 +172,20 @@ function getElementDetails(){
 
 }
 
-function addNewElement(){
+function addNewElement(element){
+	let listID = document.querySelector("#myCurrentList").value;
+	alert("Hier wird dann das Element" + element + " an die Liste "+listID+" angefügt");
+	$.ajax({
+		url: "demo/lists.json", //TODO: Change URI
+		type: "POST",
+		data: {list: listID, element: element},
 
+	}).fail(function(err) {
+		alert( "error" );
+		console.log(err)
+	}).done(function(data) {
+		getLitsts();
+	});
 }
 //endregion
 
@@ -188,6 +210,21 @@ function getUserData(){
 		document.querySelector("#user_telefon").value=data.telefonnummer;
 		document.querySelector("#user_email").value=data.email;
 		document.querySelector("#user_geburtsdatum").value=data.geburtsdatum;
+	});
+}
+//endregion
+
+//region Search User
+function searchForUserName(search){
+	$.ajax({
+		url: "demo/user.json",
+		data:{search: search},
+		dataType: "json"
+	}).fail(function(err) {
+		alert( "error" );
+		console.log(err);
+	}).done(function(data) {
+		//mach was
 	});
 }
 //endregion

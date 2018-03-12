@@ -104,6 +104,12 @@ function showListDetails(){
 	$('#listDetailsModal').modal("toggle");
 }
 
+$('.nav-tabs a').on('shown.bs.tab', function(event){
+	document.querySelector("#showElements").style.display = "none";
+	document.querySelector("#showListen").style.display = "block";
+
+});
+
 /**
  * Neue Liste anlegen, Parameter: Titel der Liste
  * @param title
@@ -176,12 +182,12 @@ function getUserData(){
 		document.querySelector("#user_username").value = data.username;
 		document.querySelector("#user_password").value=data.password;
 		document.querySelector("#user_name").value=data.name;
-		document.querySelector("#user_anschrift").value=data.Straße;
+		document.querySelector("#user_anschrift").value=data.strasse;
 		document.querySelector("#user_plz").value=data.plz;
-		document.querySelector("#user_ort").value=data.Ort;
-		document.querySelector("#user_telefon").value=data.Telefonnummer;
-		document.querySelector("#user_email").value=data.Email;
-		document.querySelector("#user_geburtsdatum").value=data.Geburtsdatum;
+		document.querySelector("#user_ort").value=data.ort;
+		document.querySelector("#user_telefon").value=data.telefonnummer;
+		document.querySelector("#user_email").value=data.email;
+		document.querySelector("#user_geburtsdatum").value=data.geburtsdatum;
 	});
 }
 //endregion

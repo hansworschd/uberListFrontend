@@ -95,7 +95,7 @@ function getLitsts() {
 		let ul = document.querySelector("#listView-list-ul");
 		ul.innerHTML = "";
 		for(let i = 0; i<data.length;i++){
-			ul.innerHTML += `<a href="javascript:void(0)" onclick="showElements(${data[i].id})">${data[i].name}</a><a href="javascript:void(0)" onclick="showListDetails()">Details</a></a> <br>`
+			ul.innerHTML += `<a href="javascript:void(0)" onclick="showElements(${data[i].id})">${data[i].name}</a> <a href="javascript:void(0)" onclick="showListDetails()"><i class="fas fa-search"></i></a></a> <br>`
 		}
 	});
 }

@@ -11,14 +11,21 @@
 	<!-- FontAwesome -->
 	<link href="css/fontawesome-all.min.css" rel="stylesheet">
 
+	<!-- Date Time Picker -->
+	<link href="css/bootstrap-datetimepicker.min.css" rel="stylesheet">
+
 	<!-- eigenes CSS -->
 	<link rel="stylesheet" href="css/style.css">
 
 	<!-- Optional JavaScript -->
 	<!-- jQuery first, then Popper.js, then Bootstrap JS -->
 	<script src="js/jquery-3.3.1.min.js"></script>
+
 	<script src="js/popper.min.js"></script>
 	<script src="js/bootstrap.min.js"></script>
+	<script src="js/bootstrap3-typeahead.min.js"></script>
+	<script src="js/moment-with-locales.min.js"></script>
+	<script src="js/bootstrap-datetimepicker.min.js"></script>
 
 	<title>uberList</title>
 </head>
@@ -29,7 +36,7 @@
 		<div class="col-md-4">
 			<div class="card myMainCard">
 				<div class="card-body" id="mainContent">
-					<h4>uberList </h4>
+					<h2>uberList </h2>
 					<ul class="nav nav-tabs" role="tablist" id="myMainContentTab">
 						<li class="nav-item">
 							<a class="nav-link active" id="listen-tab" data-toggle="tab" href="#listen-div" role="tab" aria-controls="listen-div" aria-selected="true"><i class="fas fa-list-alt"></i></a>
@@ -37,78 +44,126 @@
 						<li class="nav-item">
 							<a class="nav-link" id="user-tab" data-toggle="tab" href="#user-div" role="tab" aria-controls="user-div" aria-selected="false"><i class="far fa-user"></i></a>
 						</li>
-
-						<!-- leere, versteckte Tabs für Darstellung von extras -->
-						<li class="nav-item" style="show:hidden;">
-							<a class="nav-link" id="list-tab" data-toggle="tab" href="#list-div" role="tab" aria-controls="list-div" aria-selected="false"></a>
-						</li>
 					</ul>
 					<div class="tab-content">
 						<!-- Darstellung der Listen des Users -->
 						<div class="tab-pane fade show active" id="listen-div" role="tabpanel" aria-labelledby="listen-tab">
 							<div id="showListen">
+								<div class="input-group">
+									<input type="text" class="form-control" onchange="addNewList(this)">
+									<div class="input-group-append">
+										<div class="input-group-text"><i class="fas fa-plus"></i></div>
+									</div>
+								</div>
 								<ul class="list-unstyled" id="listView-list-ul"></ul>
-								<input type="text" class="form-control" onchange="addNewList(this.value)">
 							</div>
 							<div id="showElements" style="display:none">
+								<h3 id="listNameHeading"></h3>
+								<!-- benötigt dieses Hidden Field für das Anfügen an die richtige Liste! -->
 								<input type="hidden" id="myCurrentList">
+								<div class="input-group">
+									<input type="text" class="form-control" onchange="addNewElement(this)">
+									<div class="input-group-append">
+										<div class="input-group-text"><i class="fas fa-plus"></i></div>
+									</div>
+								</div>
 								<ul class="list-unstyled" id="listElements-element-ul"></ul>
-								<input type="text" class="form-control" onchange="addNewElement(this.value)">
+								<a href="javascript:void(0)" onclick="showLists()">Zurück</a>
 							</div>
 						</div>
 						<!-- Darstellung des Users -->
 						<div class="tab-pane fade" id="user-div" role="tabpanel" aria-labelledby="user-tab">
 							<form method="post" class="stacked">
 								<div class="form-group">
-									<label for="user_username"> Benutzername: <span class="required">*</span> </label>
-
-									<input type="text" class="form-control" ID="user_username" name="user_username">
+									<label>Benutzername</label>
+									<div class="input-group">
+										<input type="text" class="form-control" ID="user_username" name="user_username" readonly>
+										<div class="input-group-append">
+											<div class="input-group-text"><i class="fas fa-list"></i></div>
+										</div>
+									</div>
 								</div>
 								<div class="form-group">
-									<label for="user_password"> Passwort: <span class="required">*</span> </label>
-
-									<input type="password" class="form-control" ID="user_password" name="user_password">
+									<label for="user_password">Passwort</label>
+									<div class="input-group">
+										<input type="password" class="form-control" ID="user_password" name="user_password">
+										<div class="input-group-append">
+											<div class="input-group-text"><i class="fas fa-user-secret"></i></div>
+										</div>
+									</div>
 								</div>
 
 								<h4>Anschrift ändern</h4>
 								<div class="form-group">
-									<label for="user_name"> Vorname und Nachname:
+									<label for="user_name">Vorname und Nachname</label>
+									<div class="input-group">
+										<input type="text" class="form-control" ID="user_name" name="user_name">
+										<div class="input-group-append">
+											<div class="input-group-text"><i class="fas fa-user"></i></div>
+										</div>
+									</div>
 
-									</label>
-
-									<input type="text" class="form-control" ID="user_name" name="user_name">
 								</div>
 								<div class="form-group">
-									<label for="user_anschrift"> Straße und Hausnummer: </label>
+									<label for="user_anschrift">Straße und Hausnummer</label>
+									<div class="input-group">
+										<input type="text" class="form-control" ID="user_anschrift" name="user_anschrift">
+										<div class="input-group-append">
+											<div class="input-group-text"><i class="fas fa-building"></i></div>
+										</div>
+									</div>
 
-									<input type="text" class="form-control" ID="user_anschrift" name="user_anschrift">
 								</div>
 								<div class="form-group">
-									<label for="user_plz"> Postleitzahl: </label>
+									<label for="user_plz">PLZ</label>
+									<div class="input-group">
+										<input type="text" class="form-control" ID="user_plz" name="user_plz" length="5">
+										<div class="input-group-append">
+											<div class="input-group-text"><i class="fas fa-envelope"></i></div>
+										</div>
+									</div>
 
-									<input type="text" class="form-control" ID="user_plz" name="user_plz" length="5">
 								</div>
 								<div class="form-group">
-									<label for="user_ort"> Ort: </label>
-
-									<input type="text" class="form-control" ID="user_ort" name="user_ort">
+									<label for="user_ort">Ort</label>
+									<div class="input-group">
+										<input type="text" class="form-control" ID="user_ort" name="user_ort">
+										<div class="input-group-append">
+											<div class="input-group-text"><i class="fas fa-map-pin"></i></div>
+										</div>
+									</div>
 								</div>
 
 								<h4>Kontaktdaten ändern</h4>
 								<div class="form-group">
-									<label for="user_telefon"> Telefonnummer: </label>
+									<label for="user_telefon">Telefonnummer</label>
+									<div class="input-group">
+										<input type="tel" class="form-control" ID="user_telefon" name="user_telefon">
+										<div class="input-group-append">
+											<div class="input-group-text"><i class="fas fa-phone"></i></div>
+										</div>
+									</div>
 
-									<input type="text" class="form-control" ID="user_telefon" name="user_telefon">
 								</div>
 								<div class="form-group">
-									<label for="user_email"> E-Mailadresse: </label>
+									<label for="user_email">E-Mail</label>
+									<div class="input-group">
+										<input type="email" class="form-control" ID="user_email" name="user_email">
+										<div class="input-group-append">
+											<div class="input-group-text"><i class="fas fa fa-envelope"></i></div>
+										</div>
+									</div>
 
-									<input type="text" class="form-control" ID="user_email" name="user_email">
 								</div>
 								<div class="form-group">
-									<label for="user_geburtsdatum"> Geburtsdatum: </label>
+									<label for="user_geburtsdatum">Geburtsdatum</label>
+									<div class="input-group">
+										<input type="text" class="form-control" ID="user_geburtsdatum" name="user_geburtsdatum">
+										<div class="input-group-append">
+											<div class="input-group-text"><i class="fas fa fa-calendar"></i></div>
+										</div>
+									</div>
 
-									<input type="text" class="form-control" ID="user_geburtsdatum" name="user_geburtsdatum">
 								</div>
 
 								<!--Button zum Abschicken-->
@@ -117,155 +172,187 @@
 										Änderungen speichern
 									</button>
 								</div>
+							</form>
 						</div>
+					</div>
+					<div class="card-body" id="loginContent">
+						<h4>uberList
+							<small>Deine geteilte ToDo Liste</small>
+						</h4>
+						<ul class="nav nav-tabs" role="tablist">
+							<li class="nav-item">
+								<a class="nav-link active" id="login-tab" data-toggle="tab" href="#login" role="tab" aria-controls="login" aria-selected="true">Login</a>
+							</li>
+							<li class="nav-item">
+								<a class="nav-link" id="register-tab" data-toggle="tab" href="#register" role="tab" aria-controls="register" aria-selected="false">Register</a>
+							</li>
+						</ul>
+						<div class="tab-content">
+							<div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
+								<form id="form-login" action="mainView.php" method="post">
+									<div class="form-group">
+										<label>Username/Email</label> <input type="text" class="form-control" id="loginText" placeholder="Enter username / Email" name="loginUsername">
+									</div>
+									<div class="form-group">
+										<label>Password</label> <input type="password" class="form-control" name="loginPassword">
+									</div>
+									<div class="form-check">
+										<input type="checkbox" class="form-check-input" id="keepLogin"> <label class="form-check-label">Stay logged in</label>
+									</div>
+									<button type="submit" class="btn btn-primary">Login</button>
+								</form>
+							</div>
+							<div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
+								<form id="form-register" method="post">
+									<div class="form-group">
+										<label for="exampleInputEmail1">Username</label> <input type="text" class="form-control" id="usernameInput" placeholder="Username" name="username">
+									</div>
+									<div class="form-group">
+										<label for="exampleInputEmail1">Email address</label> <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email" name="email">
+									</div>
+									<div class="form-group">
+										<label for="exampleInputPassword1">Password</label> <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" name="password">
+									</div>
+									<div class="form-group">
+										<label for="exampleInputPassword1">Password Check</label> <input type="password" class="form-control" id="exampleInputPasswordCheck" placeholder="Password Check">
+									</div>
+									<button type="submit" class="btn btn-primary">Register</button>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+		<!-- Liste -->
+		<div class="modal" tabindex="-1" role="dialog" id="listDetailsModal">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Liste Editieren</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<form>
+							<input type="hidden" name="listEditID" id="listEditID">
+							<div class="form-group">
+								<label>Name</label>
+								<div class="input-group">
+									<input type="text" id="listEditName" class="form-control">
+									<div class="input-group-append">
+										<div class="input-group-text"><i class="fas fa-list"></i></div>
+									</div>
+								</div>
+							</div>
+
+							<div class="form-group" >
+								<label>Liste mit Usern der Liste</label>
+								<div id="listEditMembers"></div>
+								<!-- hier kommen die User der Liste rein -->
+							</div>
+
+							<div class="form-group">
+								<label>Neuen User der Liste hinzufügen</label>
+								<div class="input-group">
+									<input type="text" class="form-control" id="listEditUser" onkeyup="searchForUserName(this.value,this)">
+									<div class="input-group-append">
+										<div class="input-group-text"><i class="fas fa fa-user"></i></div>
+									</div>
+								</div>
+							</div>
+
+							<div class="form-group">
+								<label>Freitext</label> <textarea id="listEditFreetext" class="form-control"></textarea>
+							</div>
+
 						</form>
 					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-danger" onclick="deleteList()">Löschen</button>
+						<button type="button" class="btn btn-primary" onclick="updateList()">Speichern</button>
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Schließen</button>
+					</div>
 				</div>
-				<div class="card-body" id="loginContent">
-					<h4>uberList
-						<small>Deine geteilte ToDo Liste</small>
-					</h4>
-					<ul class="nav nav-tabs" role="tablist">
-						<li class="nav-item">
-							<a class="nav-link active" id="login-tab" data-toggle="tab" href="#login" role="tab" aria-controls="login" aria-selected="true">Login</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" id="register-tab" data-toggle="tab" href="#register" role="tab" aria-controls="register" aria-selected="false">Register</a>
-						</li>
-					</ul>
-					<div class="tab-content">
-						<div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
-							<form id="form-login" action="mainView.php" method="post">
-								<div class="form-group">
-									<label>Username/Email</label> <input type="text" class="form-control" id="loginText" placeholder="Enter username / Email" name="loginUsername">
+			</div>
+		</div>
+
+
+		<!-- Element -->
+		<div class="modal" tabindex="-1" role="dialog" id="elementsDetailsModal">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title">Element editieren</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<form>
+							<input type="hidden" id="elementEditID" name="elementEditID">
+							<div class="form-group">
+								<label>Name</label>
+
+								<div class="input-group">
+									<input type="text" id="elementEditName" name="elementEditName" class="form-control">
+									<div class="input-group-append">
+										<div class="input-group-text"><i class="fas fa fa-list"></i></div>
+									</div>
 								</div>
-								<div class="form-group">
-									<label>Password</label> <input type="password" class="form-control" name="loginPassword">
+							</div>
+
+
+							<div class="form-group">
+								<label>Ort</label>
+								<div class="input-group">
+									<input type="text" id="elementEditOrt" name="elementEditOrt" class="form-control">
+									<div class="input-group-append">
+										<div class="input-group-text"><i class="fas fa-building"></i></div>
+									</div>
 								</div>
-								<div class="form-check">
-									<input type="checkbox" class="form-check-input" id="keepLogin"> <label class="form-check-label">Stay logged in</label>
+							</div>
+
+							<div class="form-group">
+								<label>Zeit</label>
+								<div class="input-group">
+									<input type="text" class="form-control" id="elementEditTimePicker" name="elementEditTimePicker">
+									<div class="input-group-append">
+										<div class="input-group-text"><i class="fas fa-clock"></i></div>
+									</div>
 								</div>
-								<button type="submit" class="btn btn-primary">Login</button>
-							</form>
-						</div>
-						<div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
-							<form id="form-register" method="post">
-								<div class="form-group">
-									<label for="exampleInputEmail1">Username</label> <input type="text" class="form-control" id="usernameInput" placeholder="Username" name="username">
+							</div>
+
+							<div class="form-group">
+								<label>Neuen User zuweisen</label>
+								<div class="input-group">
+									<input type="text" class="form-control" id="elementEditUserSearch" onkeyup="searchForUserName(this.value,this)" name="elementEditUserSearch">
+									<div class="input-group-append">
+										<div class="input-group-text"><i class="fas fa-user"></i></div>
+									</div>
 								</div>
-								<div class="form-group">
-									<label for="exampleInputEmail1">Email address</label> <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email" name="email">
-								</div>
-								<div class="form-group">
-									<label for="exampleInputPassword1">Password</label> <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" name="password">
-								</div>
-								<div class="form-group">
-									<label for="exampleInputPassword1">Password Check</label> <input type="password" class="form-control" id="exampleInputPasswordCheck" placeholder="Password Check">
-								</div>
-								<button type="submit" class="btn btn-primary">Register</button>
-							</form>
-						</div>
+							</div>
+
+							<div class="form-group">
+								<label>Freitext</label> <textarea id="elementEditFreetext" class="form-control" name="elementEditFreetext"></textarea>
+							</div>
+
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-danger" onclick="deleteElement()">Löschen</button>
+						<button type="button" class="btn btn-primary" onclick="updateElement()">Speichern</button>
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Schließen</button>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
-
-
-	<!-- Liste -->
-	<div class="modal" tabindex="-1" role="dialog" id="listDetailsModal">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title"></h5>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-				</div>
-				<div class="modal-body">
-					<form>
-						<div class="form-group">
-							<label>Name</label>
-							<input type="text" id="listEditName" class="form-control">
-						</div>
-
-						<div class="form-group">
-							<label>Freitext</label>
-							<textarea id="listEditFreetext" class="form-control"></textarea>
-						</div>
-
-						<div class="form-group" id="listEditMembers">
-							<!-- hier kommen die User der Liste rein -->
-						</div>
-
-						<div class="form-group">
-							<label>Neuen User der Liste hinzufügen</label>
-							<input type="text" class="form-control" onkeyup="searchForUserName(this.value)">
-						</div>
-
-					</form>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-primary" onclick="updateList()">Speichern</button>
-					<button type="button" class="btn btn-secondary" data-dismiss="modal">Schließen</button>
-				</div>
-			</div>
-		</div>
-	</div>
-
-
-	<!-- Element -->
-	<div class="modal" tabindex="-1" role="dialog" id="elementsDetailsModal">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title"></h5>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-				</div>
-				<div class="modal-body">
-					<form>
-						<div class="form-group">
-							<label>Name</label>
-							<input type="text" id="elementEditName" class="form-control">
-						</div>
-
-						<div class="form-group">
-							<label>Freitext</label>
-							<textarea id="elementEditFreetext" class="form-control"></textarea>
-						</div>
-
-						<div class="form-group">
-							<label>Ort</label>
-							<input type="text" id="elementEditOrt" class="form-control">
-						</div>
-
-						<div class="form-group">
-							<label>Zeit</label>
-							<input type="text" id="elementEditZeit" class="form-control">
-						</div>
-
-						<div class="form-group" id="elementEditMembers">
-							<!-- hier kommen die User der Liste rein -->
-						</div>
-
-						<div class="form-group">
-							<label>User</label>
-							<input type="text" class="form-control" onkeyup="searchForUserName(this.value)">
-						</div>
-
-					</form>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-primary" onclick="updateElement()">Speichern</button>
-					<button type="button" class="btn btn-secondary" data-dismiss="modal">Schließen</button>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<!-- Von Lukas Ewald -->
+</div>
+<!-- Von Lukas Ewald -->
 </body>
 <!-- Eigenes JS -->
 <script src="js/script.js"></script>

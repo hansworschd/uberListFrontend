@@ -29,13 +29,15 @@
 let USERTOKEN = null;
 let USERNAME = null;
 
+let URL = "http://172.16.60.38:3000/";
+
 /**
  * Document Ready - Prüfe Login
  */
 $(document).ready(function () {
 	document.querySelector("#mainContent").style.display = 'none';
+	login();
 
-	checkLogin();
 });
 
 // Set up some default data for jQuery-driven AJAX requests.
@@ -43,41 +45,116 @@ $(document).ready(function () {
 // it comes to data, the effect is accumulative.
 $.ajaxSetup({
 	data: {
-		token: USERTOKEN,
+		authorization: USERTOKEN,
 	},
+	headers: {
+		authorization: USERTOKEN,
+		'Content-Type':'application/json'
+	},
+	contentType: "application/json",
 });
 
 //endregion
+
+function test(){
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			console.log(xhttp.responseText)
+		}
+	};
+	xhttp.open("GET", URL+"secure/list", true);
+	xhttp.setRequestHeader("Content-Type", "application/json");
+	xhttp.setRequestHeader("authorization", "5ab8c48eaeb7c141d40ed0f6");
+	var param = {title:"Update Liste zum 400zsten mal"};
+	xhttp.send();
+}
 
 //region login und Startseite
 /**
  * Check den Login --> True: mainView, false: Login
  */
-function checkLogin() {
-	let username = "lukas";
-	let password = "123";
+function login(){
+	let username = document.querySelector("#loginUsername").value;
+	let password = document.querySelector("#loginPassword").value;
 
-	$.ajax({
-		data: {username: username, password: password},
-		//url: "user/login", //TODO: Change URI
-		url: "demo/login.json", //TODO: Change URI
-		method: "get",
-		dataType: "json"
-	}).fail(function (err) {
-		console.log(err);
-		alert("error");
-	}).done(function (dat) {
-		USERTOKEN = dat.token;
-		USERNAME = dat.username;
+	if (username !== "") {
 
-		//Ändern der Darstellung zwischen Main (Normale Seiten) und Login (ausgeloggt)
-		//Ändern der Darstellung zwischen Main (Normale Seiten) und Login (ausgeloggt)
-		document.querySelector("#mainContent").style.display = 'block';
-		document.querySelector("#loginContent").style.display = 'none';
-		getUserData();
-		getLitsts();
-	});
+		localStorage.setItem("uberListUsername", username);
+		localStorage.setItem("uberListPassword", password);
+	}
+
+	if (username === "") {
+
+		username = localStorage.getItem("uberListUsername");
+		password = localStorage.getItem("uberListPassword");
+	}
+
+	if (username !== "" && password !== "") {
+		$.ajax({
+			data: {username: username, password: password},
+			url: URL + "authenticate", //TODO: Change URI
+
+			method: "POST",
+			data: JSON.stringify({
+				username: username,
+				password: password,
+			}),
+			dataType: "json",
+			beforeSend: function(request) {
+				request.setRequestHeader("authorization", USERTOKEN);
+			},
+		}).fail(function (err) {
+			console.log(err);
+		}).done(function (dat) {
+			USERTOKEN = dat.token;
+			USERNAME = dat.username;
+			//Ändern der Darstellung zwischen Main (Normale Seiten) und Login (ausgeloggt)
+			document.querySelector("#mainContent").style.display = 'block';
+			document.querySelector("#loginContent").style.display = 'none';
+			getUserData();
+			getLitsts();
+			setBackgroundColor(dat.color);
+		});
+	}
 }
+
+$("#form-login").submit(function(e) {
+	e.preventDefault();
+	login();
+});
+
+
+$("#form-register").submit(function(e) {
+	e.preventDefault();
+
+	let username = document.querySelector("#registerUsername").value;
+	let password = document.querySelector("#registerPassword").value;
+	let passwordCheck = document.querySelector("#registerPasswordCheck").value;
+	let email = document.querySelector("#registerEmail").value;
+
+	if (password !== passwordCheck) {
+		alert("Password ungleich");
+	}
+	else {
+
+
+		$.ajax({
+			data: {
+				username: username,
+				password: password,
+				email: email,
+			},
+			url: URL + "register", //TODO: Change URI
+			method: "POST",
+			dataType: "json"
+		}).fail(function (err) {
+			console.log(err);
+		}).done(function (dat) {
+			alert("Registriert");
+		});
+	}
+});
 
 //endregion
 
@@ -86,9 +163,13 @@ function checkLogin() {
 /**
  * Bekomme alle Listen
  */
+
 function getLitsts() {
+	let myUrl = URL + "secure/list";
+
 	$.ajax({
-		url: "demo/lists.json", //TODO: Change URI
+		url: myUrl,
+		type: "GET",
 	}).fail(function (err) {
 		alert("error");
 		console.log(err)
@@ -105,40 +186,41 @@ function showListDetails() {
 	$('#listDetailsModal').modal("toggle");
 }
 
-$('.nav-tabs a').on('shown.bs.tab', function (event) {
+$('.nav-tabs a').on('shown.bs.tab', function () {
 	document.querySelector("#showElements").style.display = "none";
 	document.querySelector("#showListen").style.display = "block";
 });
 
-function showLists(){
+function showLists() {
 	document.querySelector("#showElements").style.display = "none";
 	document.querySelector("#showListen").style.display = "block";
 }
 
 /**
  * Neue Liste anlegen, Parameter: Titel der Liste
- * @param title
+ * @param element
  */
 function addNewList(element) {
 	let title = element.value;
-	if(title.length > 2){
+	if (title.length > 2) {
 		alert("Die Liste " + title + " wird angelegt.");
 
 		$.ajax({
-			url: "demo/lists.json", //TODO: Change URI
+			url: URL + "secure/addList",
 			type: "POST",
-			data: {name:title},
+			data: JSON.stringify({name: title}),
 		}).fail(function (err) {
 			alert("error");
 			console.log(err)
 		}).done(function (data) {
+			console.log(data);
 			getLitsts();
 			element.value = "";
 		});
 	}
 }
 
-function deleteList(){
+function deleteList() {
 
 }
 
@@ -155,7 +237,9 @@ function showElements(listID) {
 
 function getElementsFromList(listID) {
 	$.ajax({
-		url: "demo/elements.json", //TODO: Change URI
+		url: URL + "secure/getElements", //TODO: Change URI#
+		type: "POST",
+		data: JSON.stringify({listId: listID}),
 	}).fail(function (err) {
 		alert("error");
 		console.log(err)
@@ -171,12 +255,11 @@ function getElementsFromList(listID) {
 		document.querySelector("#listNameHeading").innerHTML = data['name'];
 
 
-
 		let ul = document.querySelector("#listElements-element-ul");
 		ul.innerHTML = "";
 		for (let i = 0; i < data['elements'].length; i++) {
 			let dat = data['elements'][i];
-			ul.innerHTML += `<li><a href="javascript:void(0)" onclick="showElementDetails(${dat.id})"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)"><i class="fas fa-check"></i></a> ${dat.name}</li>`
+			ul.innerHTML += `<li><a href="javascript:void(0)" onclick="showElementDetails(${dat.id})"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="checkElement(${dat.id})"><i class="fas fa-check"></i></a> ${dat.name}</li>`
 		}
 	});
 }
@@ -196,24 +279,24 @@ function showElementDetails() {
 function getElementDetails() {
 	//TODO load Ajax
 
-	return {"name":"Name","place":"Büro","time":"2019-01-01T20:00:00","freetext":"Text"};
+	return {"name": "Name", "place": "Büro", "time": "2019-01-01T20:00:00", "freetext": "Text"};
 }
 
-function checkElement(id){
-//TODO ajax Check
+function checkElement(id) {
+	//TODO ajax Check
 }
 
-function deleteElement(){
+function deleteElement() {
 	//TODO ajax delete
 }
 
-function updateElement(){
+function updateElement() {
 
 }
 
 function addNewElement(element) {
 	let text = element.value;
-	if(text.length > 2){
+	if (text.length > 2) {
 		let listID = document.querySelector("#myCurrentList").value;
 		alert("Hier wird dann das Element " + text + " an die Liste " + listID + " angefügt");
 		$.ajax({
@@ -225,6 +308,7 @@ function addNewElement(element) {
 			alert("error");
 			console.log(err)
 		}).done(function (data) {
+			console.log(data);
 			getLitsts();
 			element.value = "";
 		});
@@ -257,6 +341,15 @@ function getUserData() {
 	});
 }
 
+/**
+ * setBackgroundColor --> Hintergrundfarbe setzen
+ * @param color
+ */
+function setBackgroundColor(color) {
+	if (color !== null)
+		document.querySelector("body").style.background = color;
+}
+
 //endregion
 
 //region Search User
@@ -265,13 +358,14 @@ function getUserData() {
  * @param search --> Suchname
  * @param element --> DOM Element auf das die Suche angewendet werden soll
  */
-function searchForUserName(search,element){
+function searchForUserName(search, element) {
 	console.log(search);
 	//TODO: Auf URL ändern
-	$.get("demo/users.json", function(data){
-		$(element).typeahead({ source:data });
-	},'json');
+	$.get("demo/users.json", function (data) {
+		$(element).typeahead({source: data});
+	}, 'json');
 }
+
 //endregion
 
 //region Onload

@@ -36,7 +36,6 @@ function myFetch(backendMethod, data, type) {
 	let url = URL + backendMethod;
 
 	if (data !== null && data !== undefined) {
-		console.log("Stringify");
 		data = JSON.stringify(data);
 	}
 	else {
@@ -82,7 +81,6 @@ function login() {
 			password: password,
 		};
 		myFetch('authenticate', data, "POST").then(function (dat) {
-			console.log(dat);
 			USERTOKEN = dat.token;
 			USERNAME = dat.username;
 			//Ändern der Darstellung zwischen Main (Normale Seiten) und Login (ausgeloggt)
@@ -91,8 +89,6 @@ function login() {
 			getUserData();
 			getLitsts();
 			setBackgroundColor(dat.color);
-		}).catch(function (error) {
-			console.log(error);
 		});
 	}
 }
@@ -145,7 +141,6 @@ function logout() {
 function getLitsts() {
 	myFetch('secure/list', null, "GET")
 		.then(function (data) {
-			console.log(data)
 			let lists = data.lists;
 			let ul = document.querySelector("#listView-list-ul");
 			ul.innerHTML = "";
@@ -251,8 +246,6 @@ function showElements(listID) {
 function getElementsFromList(listID) {
 	myFetch('secure/getElements', {listId: listID}, "POST")
 		.then(function (data) {
-			console.log(data);
-
 			document.querySelector("#myCurrentList").value = listID;
 
 			document.querySelector("#showElements").style.display = "block";

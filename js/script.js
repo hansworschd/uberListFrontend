@@ -156,6 +156,7 @@ function showListDetails(id) {
 			let list = data.list;
 			document.querySelector("#listEditID").value = list._id;
 			document.querySelector("#listEditName").value = list.title;
+			document.querySelector("#listEditFreetext").value = list.description;
 		});
 
 	$('#listDetailsModal').modal("toggle");
@@ -177,7 +178,7 @@ function updateList(){
 	let id = document.querySelector("#listEditID").value;
 	let data = {
 		title: document.querySelector("#listEditName").value,
-		text: document.querySelector("#listEditFreetext").value,
+		description: document.querySelector("#listEditFreetext").value,
 	};
 
 	myFetch('secure/list/'+id, data, "PATCH")

@@ -5,23 +5,6 @@
  * Datum: 2018-02-26
  *
  */
-
-/**
- * TODO:
- *  *Bennenung überdenken
- *  *UserView,ListsView und View für einzelne Elemenete vorbereiten, diese dann per JSON Füllen
- *  *Kommentierung
- *
- *  *Update Elemente
- *  *Update Liste
- *  *Update User
- *
- *  Vorgehen: View laden - Daten laden.
- *
- *  Sprich: zuerst wird eine "leere" Seite angezeigt, und diese dann mit Daten gefüllt.
- */
-
-
 // region Globales
 /**
  * Globale Variablen
@@ -159,9 +142,18 @@ function showListDetails(id) {
 			document.querySelector("#listEditFreetext").value = list.description;
 		});
 
+		myFetch('secure/list_membership/'+id, null, "GET")
+			.then(function (data) {
+
+			  let memberList = "Leider keine Benutzer gefunden..."
+				let members = data.membership;
+				for(let i = 0; i<members.length;i++){
+					memberList = `<p>${members[i]}</p>`;
+				}
+				document.querySelector("#listEditMembers").textContent = memberList;
+			});
+
 	$('#listDetailsModal').modal("toggle");
-
-
 }
 
 $('.nav-tabs a').on('shown.bs.tab', function () {
@@ -227,7 +219,7 @@ function addNewList(element) {
 				getLitsts();
 				element.value = "";
 			}) // JSON from `response.json()` call
-			.catch(error => console.error(error))
+			.catch(error => console.error(error));
 	}
 }
 
@@ -245,21 +237,22 @@ function showElements(listID) {
 }
 
 function getElementsFromList(listID) {
-	myFetch('secure/getElements', {listId: listID}, "POST")
+	myFetch('secure/list_entry/getall/'+listID,null, "GET")
 		.then(function (data) {
 			document.querySelector("#myCurrentList").value = listID;
 
 			document.querySelector("#showElements").style.display = "block";
 			document.querySelector("#showListen").style.display = "none";
 
-
-			document.querySelector("#listNameHeading").innerHTML = data['name'];
-
+			//document.querySelector("#listNameHeading").innerHTML = data['name'];
 
 			let ul = document.querySelector("#listElements-element-ul");
 			ul.innerHTML = "";
-			for (let i = 0; i < data['elements'].length; i++) {
-				let dat = data['elements'][i];
+
+			let entries = data['listEntries']
+
+			for (let i = 0; i < entries.length; i++) {
+				let dat = entries[i];
 				ul.innerHTML += `<li><a href="javascript:void(0)" onclick="showElementDetails('${dat._id}')"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="checkElement('${dat._id}')"><i class="fas fa-check"></i></a> ${dat.name}</li>`
 			}
 		}) // JSON from `response.json()` call
@@ -267,26 +260,28 @@ function getElementsFromList(listID) {
 }
 
 
-function showElementDetails() {
-	let data = getElementDetails();
-
-	document.querySelector("#elementEditName").value = data.name;
-	document.querySelector("#elementEditOrt").value = data.place;
-	document.querySelector("#elementEditTimePicker").value = data.time;
-	document.querySelector("#elementEditFreetext").value = data.freetext;
-
-	$('#elementsDetailsModal').modal("toggle");
-}
-
 function getElementDetails() {
-	//TODO load Ajax
+	myFetch('secure/list_entry',null, "GET")
+		.then(function (data) {
+			let elements = data.listEntries;
+			new PNotify({
+				title: 'Success!',
+				text: 'Eine neue Liste wurde angelegt.',
+				type: 'success'
+			});
+			document.querySelector("#elementEditName").value = elements.name;
+			document.querySelector("#elementEditOrt").value = elements.place;
+			document.querySelector("#elementEditTimePicker").value = elements.time;
+			document.querySelector("#elementEditFreetext").value = elements.freetext;
 
-	return {"name": "Name", "place": "Büro", "time": "2019-01-01T20:00:00", "freetext": "Text"};
+			$('#elementsDetailsModal').modal("toggle");
+		}) // JSON from `response.json()` call
+		.catch(error => console.error(error));
 }
+
 
 function checkElement(id) {
-	//TODO ajax Check#
-
+	//TODO check
 	myFetch('secure/checkElement', {element: id}, "POST")
 		.then(function (data) {
 
@@ -295,31 +290,38 @@ function checkElement(id) {
 }
 
 function deleteElement(id) {
-	//TODO ajax delete
-
-	myFetch('secure/deleteElement', {element: id}, "POST")
+	let listID = document.querySelector("#myCurrentList").value;
+	//TODO url
+	myFetch('secure/list_entry/'+id, null, "DELETE")
 		.then(function (data) {
 			new PNotify({
 				title: 'Delete!',
 				text: 'Das Element wurde gelöscht',
 				type: 'warning'
 			});
+			$('#elementsDetailsModal').modal("toggle");
+			getElementsFromList(listID);
 		}) // JSON from `response.json()` call
 		.catch(error => console.error(error));
 }
 
-function updateElement() {
-	//TODO fetch update
+function updateElement(id) {
+	let listID = document.querySelector("#myCurrentList").value;
+	//TODO url
 
-	myFetch('secure/updateElement', data, "POST")
+	let data = {
+
+	};
+
+	myFetch('secure/list_entry'+id, data, "PATCH")
 		.then(function (data) {
 			new PNotify({
 				title: 'Success!',
 				text: 'Das Element wurde aktualisiert.',
 				type: 'success'
 			});
-			getLitsts();
-			element.value = "";
+			$('#elementsDetailsModal').modal("toggle");
+			getElementsFromList(listID);
 		}) // JSON from `response.json()` call
 		.catch(error => console.error(error));
 }
@@ -328,16 +330,21 @@ function addNewElement(element) {
 	let text = element.value;
 	if (text.length > 2) {
 		let listID = document.querySelector("#myCurrentList").value;
-		alert("Hier wird dann das Element " + text + " an die Liste " + listID + " angefügt");
 
-		myFetch('secure/addElement', {list: listID, element: text}, "POST")
+		let post = {
+			"listId": listID,
+			"title": text
+		};
+
+
+		myFetch('secure/list_entry', post, "POST")
 			.then(function (data) {
 				new PNotify({
 					title: 'Success!',
 					text: 'Ein neues Element wurde angefügt.',
 					type: 'success'
 				});
-				getLitsts();
+				getElementsFromList(listID);
 				element.value = "";
 			}) // JSON from `response.json()` call
 			.catch(error => console.error(error));
@@ -436,6 +443,7 @@ $(function () {
 			up: "fas fa-arrow-up",
 			down: "fas fa-arrow-down"
 		},
+		format: "DD.MM.YYYY",
 	});
 
 	$('#user_geburtsdatum').datetimepicker({
@@ -451,6 +459,7 @@ $(function () {
 
 	$('#user_backgroundcolor').colorpicker({
 		format: "hex",
+		useAlpha: false,
 	});
 
 	PNotify.prototype.options.delay = 2000;

@@ -29,7 +29,31 @@
 let USERTOKEN = null;
 let USERNAME = null;
 
-let URL = "http://172.16.60.38:3000/";
+let URL = "http://uberlistwebapi.azurewebsites.net/";
+
+
+function myFetch(backendMethod, data, type) {
+	//waitingDialog.show();
+	let url = URL + backendMethod;
+
+	if(data !== null && data !== undefined){
+		data = JSON.stringify(data);
+	}
+	else{
+		data = undefined;
+	}
+  // Default options are marked with *
+  return fetch(url, {
+    body: data, // must match 'Content-Type' header
+    headers: {
+      'content-type': 'application/json',
+			'authorization': USERTOKEN,
+    },
+		mode: 'cors',
+    method: type, // *GET, POST, PUT, DELETE, etc.
+  }).then(response => response.json()).catch(error => console.log(error)); // parses response to JSON
+}
+
 
 /**
  * Document Ready - Prüfe Login
@@ -39,36 +63,7 @@ $(document).ready(function () {
 	login();
 
 });
-
-// Set up some default data for jQuery-driven AJAX requests.
-// In general, ajaxSetup() builds the options hash; but when
-// it comes to data, the effect is accumulative.
-$.ajaxSetup({
-	data: {
-		authorization: USERTOKEN,
-	},
-	headers: {
-		authorization: USERTOKEN,
-		'Content-Type':'application/json'
-	},
-	contentType: "application/json",
-});
-
 //endregion
-
-function test(){
-	var xhttp = new XMLHttpRequest();
-	xhttp.onreadystatechange = function() {
-		if (this.readyState == 4 && this.status == 200) {
-			console.log(xhttp.responseText)
-		}
-	};
-	xhttp.open("GET", URL+"secure/list", true);
-	xhttp.setRequestHeader("Content-Type", "application/json");
-	xhttp.setRequestHeader("authorization", "5ab8c48eaeb7c141d40ed0f6");
-	var param = {title:"Update Liste zum 400zsten mal"};
-	xhttp.send();
-}
 
 //region login und Startseite
 /**
@@ -91,31 +86,21 @@ function login(){
 	}
 
 	if (username !== "" && password !== "") {
-		$.ajax({
-			data: {username: username, password: password},
-			url: URL + "authenticate", //TODO: Change URI
-
-			method: "POST",
-			data: JSON.stringify({
-				username: username,
-				password: password,
-			}),
-			dataType: "json",
-			beforeSend: function(request) {
-				request.setRequestHeader("authorization", USERTOKEN);
-			},
-		}).fail(function (err) {
-			console.log(err);
-		}).done(function (dat) {
-			USERTOKEN = dat.token;
-			USERNAME = dat.username;
-			//Ändern der Darstellung zwischen Main (Normale Seiten) und Login (ausgeloggt)
-			document.querySelector("#mainContent").style.display = 'block';
-			document.querySelector("#loginContent").style.display = 'none';
-			getUserData();
-			getLitsts();
-			setBackgroundColor(dat.color);
-		});
+		let data = {
+			username: username,
+			password: password,
+		};
+		myFetch('authenticate', data, "POST").then(function(dat){
+			console.log(dat);
+				USERTOKEN = dat.token;
+				USERNAME = dat.username;
+				//Ändern der Darstellung zwischen Main (Normale Seiten) und Login (ausgeloggt)
+				document.querySelector("#mainContent").style.display = 'block';
+				document.querySelector("#loginContent").style.display = 'none';
+				//getUserData();
+				getLitsts();
+				setBackgroundColor(dat.color);
+			}).catch(function(error) { console.log(error); });
 	}
 }
 
@@ -137,24 +122,26 @@ $("#form-register").submit(function(e) {
 		alert("Password ungleich");
 	}
 	else {
+		let sendData = {
+			username: username,
+			password: password,
+			email: email,
+		};
+		myFetch('register', sendData, "POST")
+			.then(function(dat){
+				alert("Registriert");
+			}) // JSON from `response.json()` call
 
-
-		$.ajax({
-			data: {
-				username: username,
-				password: password,
-				email: email,
-			},
-			url: URL + "register", //TODO: Change URI
-			method: "POST",
-			dataType: "json"
-		}).fail(function (err) {
-			console.log(err);
-		}).done(function (dat) {
-			alert("Registriert");
-		});
 	}
 });
+
+function logout(){
+	myFetch('authenticate', null, "DELETE")
+		.then(function(){
+			document.querySelector("#mainContent").style.display = 'none';
+			document.querySelector("#loginContent").style.display = 'block';
+		});
+}
 
 //endregion
 
@@ -165,21 +152,16 @@ $("#form-register").submit(function(e) {
  */
 
 function getLitsts() {
-	let myUrl = URL + "secure/list";
-
-	$.ajax({
-		url: myUrl,
-		type: "GET",
-	}).fail(function (err) {
-		alert("error");
-		console.log(err)
-	}).done(function (data) {
-		let ul = document.querySelector("#listView-list-ul");
-		ul.innerHTML = "";
-		for (let i = 0; i < data.length; i++) {
-			ul.innerHTML += `<li> <a href="javascript:void(0)" onclick="showListDetails()"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="showElements(${data[i].id})">${data[i].name}</a></li>`
-		}
-	});
+	myFetch('secure/list', null, "GET")
+		.then(function (data) {
+			console.log(data)
+			let lists = data.lists;
+				let ul = document.querySelector("#listView-list-ul");
+				ul.innerHTML = "";
+				for (let i = 0; i < lists.length; i++) {
+					ul.innerHTML += `<li> <a href="javascript:void(0)" onclick="showListDetails()"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="showElements(${lists[i]._id})">${lists[i].title}</a></li>`
+				}
+		});
 }
 
 function showListDetails() {
@@ -201,23 +183,19 @@ function showLists() {
  * @param element
  */
 function addNewList(element) {
+
 	let title = element.value;
 	if (title.length > 2) {
-		alert("Die Liste " + title + " wird angelegt.");
+		//alert("Die Liste " + title + " wird angelegt.");
 
-		$.ajax({
-			url: URL + "secure/addList",
-			type: "POST",
-			data: JSON.stringify({name: title}),
-		}).fail(function (err) {
-			alert("error");
-			console.log(err)
-		}).done(function (data) {
-			console.log(data);
-			getLitsts();
-			element.value = "";
-		});
-	}
+		myFetch('secure/list', {title: title}, "POST")
+			.then(data => function (data) {
+				console.log(data);
+				getLitsts();
+				element.value = "";
+			}) // JSON from `response.json()` call
+			.catch(error => console.error(error))
+		}
 }
 
 function deleteList() {
@@ -236,32 +214,28 @@ function showElements(listID) {
 }
 
 function getElementsFromList(listID) {
-	$.ajax({
-		url: URL + "secure/getElements", //TODO: Change URI#
-		type: "POST",
-		data: JSON.stringify({listId: listID}),
-	}).fail(function (err) {
-		alert("error");
-		console.log(err)
-	}).done(function (data) {
-		console.log(data);
 
-		document.querySelector("#myCurrentList").value = listID;
+	myFetch('secure/getElements', {listId: listID}, "POST")
+		.then(data => function (data) {
+			console.log(data);
 
-		document.querySelector("#showElements").style.display = "block";
-		document.querySelector("#showListen").style.display = "none";
+			document.querySelector("#myCurrentList").value = listID;
+
+			document.querySelector("#showElements").style.display = "block";
+			document.querySelector("#showListen").style.display = "none";
 
 
-		document.querySelector("#listNameHeading").innerHTML = data['name'];
+			document.querySelector("#listNameHeading").innerHTML = data['name'];
 
 
-		let ul = document.querySelector("#listElements-element-ul");
-		ul.innerHTML = "";
-		for (let i = 0; i < data['elements'].length; i++) {
-			let dat = data['elements'][i];
-			ul.innerHTML += `<li><a href="javascript:void(0)" onclick="showElementDetails(${dat.id})"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="checkElement(${dat.id})"><i class="fas fa-check"></i></a> ${dat.name}</li>`
-		}
-	});
+			let ul = document.querySelector("#listElements-element-ul");
+			ul.innerHTML = "";
+			for (let i = 0; i < data['elements'].length; i++) {
+				let dat = data['elements'][i];
+				ul.innerHTML += `<li><a href="javascript:void(0)" onclick="showElementDetails(${dat.id})"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="checkElement(${dat.id})"><i class="fas fa-check"></i></a> ${dat.name}</li>`
+			}
+		}) // JSON from `response.json()` call
+		.catch(error => console.error(error));
 }
 
 
@@ -283,15 +257,39 @@ function getElementDetails() {
 }
 
 function checkElement(id) {
-	//TODO ajax Check
+	//TODO ajax Check#
+
+	myFetch('secure/checkElement', {element: id}, "POST")
+		.then(data => function (data) {
+			console.log(data);
+			getLitsts();
+			element.value = "";
+		}) // JSON from `response.json()` call
+		.catch(error => console.error(error));
 }
 
-function deleteElement() {
+function deleteElement(id) {
 	//TODO ajax delete
+
+	myFetch('secure/deleteElement', {element: id}, "POST")
+		.then(data => function (data) {
+			console.log(data);
+			getLitsts();
+			element.value = "";
+		}) // JSON from `response.json()` call
+		.catch(error => console.error(error));
 }
 
 function updateElement() {
+	//TODO fetch update
 
+	myFetch('secure/updateElement', data, "POST")
+		.then(data => function (data) {
+			console.log(data);
+			getLitsts();
+			element.value = "";
+		}) // JSON from `response.json()` call
+		.catch(error => console.error(error));
 }
 
 function addNewElement(element) {
@@ -299,19 +297,14 @@ function addNewElement(element) {
 	if (text.length > 2) {
 		let listID = document.querySelector("#myCurrentList").value;
 		alert("Hier wird dann das Element " + text + " an die Liste " + listID + " angefügt");
-		$.ajax({
-			url: "demo/lists.json", //TODO: Change URI
-			type: "POST",
-			data: {list: listID, element: text},
 
-		}).fail(function (err) {
-			alert("error");
-			console.log(err)
-		}).done(function (data) {
-			console.log(data);
-			getLitsts();
-			element.value = "";
-		});
+		myFetch('secure/addElement', {list: listID, element: text}, "POST")
+			.then(data => function (data) {
+				console.log(data);
+				getLitsts();
+				element.value = "";
+			}) // JSON from `response.json()` call
+			.catch(error => console.error(error));
 	}
 }
 
@@ -322,23 +315,20 @@ function addNewElement(element) {
  * Lade Userdaten
  */
 function getUserData() {
-	$.ajax({
-		url: "demo/user.json",
-		dataType: "json"
-	}).fail(function (err) {
-		alert("error");
-		console.log(err);
-	}).done(function (data) {
-		document.querySelector("#user_username").value = data.username;
-		document.querySelector("#user_password").value = data.password;
-		document.querySelector("#user_name").value = data.name;
-		document.querySelector("#user_anschrift").value = data.strasse;
-		document.querySelector("#user_plz").value = data.plz;
-		document.querySelector("#user_ort").value = data.ort;
-		document.querySelector("#user_telefon").value = data.telefonnummer;
-		document.querySelector("#user_email").value = data.email;
-		document.querySelector("#user_geburtsdatum").value = data.geburtsdatum;
-	});
+	/*myFetch('secure/getUser', {}, "GET")
+		.then(data => function (data) {
+			document.querySelector("#user_username").value = data.username;
+			document.querySelector("#user_password").value = data.password;
+			document.querySelector("#user_name").value = data.name;
+			document.querySelector("#user_anschrift").value = data.strasse;
+			document.querySelector("#user_plz").value = data.plz;
+			document.querySelector("#user_ort").value = data.ort;
+			document.querySelector("#user_telefon").value = data.telefonnummer;
+			document.querySelector("#user_email").value = data.email;
+			document.querySelector("#user_geburtsdatum").value = data.geburtsdatum;
+		}) // JSON from `response.json()` call
+		.catch(error => console.error(error));
+		*/
 }
 
 /**
@@ -359,11 +349,11 @@ function setBackgroundColor(color) {
  * @param element --> DOM Element auf das die Suche angewendet werden soll
  */
 function searchForUserName(search, element) {
-	console.log(search);
-	//TODO: Auf URL ändern
-	$.get("demo/users.json", function (data) {
-		$(element).typeahead({source: data});
-	}, 'json');
+	myFetch('secure/searcUser', {"search":search}, "GET")
+		.then(data => function (data) {
+			$(element).typeahead({source: data});
+		}) // JSON from `response.json()` call
+		.catch(error => console.error(error));
 }
 
 //endregion

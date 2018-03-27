@@ -201,14 +201,13 @@ function deleteList() {
 	let id = document.querySelector("#listEditID").value;
 	myFetch('secure/list/'+id, null, "DELETE")
 		.then($('#listDetailsModal').modal("toggle"))
-		.then(getLitsts())
 		.then(
 			new PNotify({
 				title: 'Delete!',
 				text: 'Die Liste wurde gelöscht.',
 				type: 'warning'
 			})
-		);
+		).then(getLitsts());
 
 }
 

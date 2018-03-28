@@ -1,19 +1,28 @@
 /******
  *
- * Part von Lukas
+ * Part von Lukas E. und Vera G.
  *
- * Datum: 2018-02-26
+ * Datum: 2018-03-28
  *
  */
-// region Globales
+// region Globales und onLoad
 /**
  * Globale Variablen
  */
 let USERTOKEN = null;
 let USERNAME = null;
-
 let URL = "http://uberlistwebapi.azurewebsites.net/";
 
+/**
+ * myFetch
+ *
+ * Methode für fetch von Anfragen
+ *
+ * @param backendMethod
+ * @param data
+ * @param type
+ * @returns {Promise<any>}
+ */
 function myFetch(backendMethod, data, type) {
 	//waitingDialog.show();
 	let url = URL + backendMethod;
@@ -37,9 +46,50 @@ function myFetch(backendMethod, data, type) {
 	}).then(response => response.json()).catch(error => console.log(error)); // parses response to JSON
 }
 
-
-//region login und Startseite
 /**
+ * Onload mit jQuery
+ *
+ * Initialisieren von Werten und Deaktivieren von MainContent
+ */
+$(function () {
+	document.querySelector("#mainContent").style.display = 'none';
+
+	$('#elementEditTimePicker').datetimepicker({
+		locale: 'de',
+		icons: {
+			time: "fas fa-clock",
+			date: "fas fa-calendar",
+			up: "fas fa-arrow-up",
+			down: "fas fa-arrow-down"
+		},
+		format: "DD.MM.YYYY",
+	});
+
+	$('#user_geburtsdatum').datetimepicker({
+		locale: 'de',
+		icons: {
+			time: "fas fa-clock",
+			date: "fas fa-calendar",
+			up: "fas fa-arrow-up",
+			down: "fas fa-arrow-down"
+		},
+		format: "DD.MM.YYYY",
+	});
+
+	$('#user_backgroundcolor').colorpicker({
+		format: "hex",
+		useAlpha: false,
+	});
+
+	PNotify.prototype.options.delay = 2000;
+
+	login();
+});
+//endregion
+
+//region Startseite, Login und Suche
+/**
+ * Methode zum Login
  * Check den Login --> True: mainView, false: Login
  */
 function login() {
@@ -81,7 +131,10 @@ $("#form-login").submit(function (e) {
 	login();
 });
 
-
+/**
+ * Register Submit
+ * Methode zum Registrieren
+ */
 $("#form-register").submit(function (e) {
 	e.preventDefault();
 
@@ -106,17 +159,34 @@ $("#form-register").submit(function (e) {
 	}
 });
 
+/**
+ * Logout von user
+ */
 function logout() {
 	myFetch('authenticate', null, "DELETE")
 		.then(function () {
 			document.querySelector("#mainContent").style.display = 'none';
 			document.querySelector("#loginContent").style.display = 'block';
 		});
+
+	localStorage.clear();
+}
+
+/**
+ * searchForUserName
+ * @param search --> Suchname
+ * @param element --> DOM Element auf das die Suche angewendet werden soll
+ */
+function searchForUserName(search, element) {
+	myFetch('secure/user/search/'+search, null, "GET")
+		.then(function (data) {
+			$(element).typeahead({source: data.data});
+		}) // JSON from `response.json()` call
+		.catch(error => console.error(error));
 }
 //endregion
 
-
-//region Liste
+//region Listen
 /**
  * Bekomme alle Listen
  */
@@ -128,11 +198,18 @@ function getLitsts() {
 			let ul = document.querySelector("#listView-list-ul");
 			ul.innerHTML = "";
 			for (let i = 0; i < lists.length; i++) {
-				ul.innerHTML += `<li> <a href="javascript:void(0)" onclick="showListDetails('${lists[i]._id}')"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="showElements('${lists[i]._id}')">${lists[i].title}</a></li>`
+				ul.innerHTML += `<li> <a href="javascript:void(0)" onclick="showListDetails('${lists[i]._id}')"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="getElementsFromList('${lists[i]._id}')">${lists[i].title}</a></li>`
 			}
 		});
 }
 
+/**
+ * showListDetails
+ *
+ * Details über eine Liste mit der ID xxx
+ *
+ * @param id
+ */
 function showListDetails(id) {
 	myFetch('secure/list/'+id, null, "GET")
 		.then(function (data) {
@@ -156,16 +233,26 @@ function showListDetails(id) {
 	$('#listDetailsModal').modal("toggle");
 }
 
+/**
+ * Methode zum Ändern der Tab Darstellung je nachdem ob Liste oder Elemente angezeigt werden sollen
+ */
 $('.nav-tabs a').on('shown.bs.tab', function () {
 	document.querySelector("#showElements").style.display = "none";
 	document.querySelector("#showListen").style.display = "block";
 });
 
+/**
+ * Methode zum anzeigen der Liste anstatt element - wird für zurück benötigt.
+ */
 function showLists() {
 	document.querySelector("#showElements").style.display = "none";
 	document.querySelector("#showListen").style.display = "block";
 }
 
+/**
+ * Liste Updaten
+ * Wird beim Clicken des Buttons im Modal aufgerufen
+ */
 function updateList(){
 	let id = document.querySelector("#listEditID").value;
 	let data = {
@@ -185,6 +272,10 @@ function updateList(){
 		.then(getLitsts());
 }
 
+/**
+ * Löschen eine Liste
+ * Wird beim Delete Button im Modal aufgerufen
+ */
 function deleteList() {
 	let id = document.querySelector("#listEditID").value;
 	myFetch('secure/list/'+id, null, "DELETE")
@@ -222,20 +313,14 @@ function addNewList(element) {
 			.catch(error => console.error(error));
 	}
 }
-
-
-
 //endregion
 
-//region Elements
+//region Element / Entry
+
 /**
- * Lade elemente von einer ID
+ * Elemente von einer Liste mit ID xxx
  * @param listID
  */
-function showElements(listID) {
-	getElementsFromList(listID);
-}
-
 function getElementsFromList(listID) {
 	myFetch('secure/list_entry/getall/'+listID,null, "GET")
 		.then(function (data) {
@@ -253,15 +338,18 @@ function getElementsFromList(listID) {
 
 			for (let i = 0; i < entries.length; i++) {
 				let dat = entries[i];
-				ul.innerHTML += `<li><a href="javascript:void(0)" onclick="showElementDetails('${dat._id}')"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="checkElement('${dat._id}')"><i class="fas fa-check"></i></a> ${dat.name}</li>`
+				ul.innerHTML += `<li><a href="javascript:void(0)" onclick="getElementDetails('${dat._id}')"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="checkElement('${dat._id}')"><i class="fas fa-check"></i></a> ${dat.name}</li>`
 			}
 		}) // JSON from `response.json()` call
 		.catch(error => console.error(error));
 }
 
 
-function getElementDetails() {
-	myFetch('secure/list_entry',null, "GET")
+/**
+ * Details von einem Element
+ */
+function getElementDetails(id) {
+	myFetch('secure/list_entry/'+id,null, "GET")
 		.then(function (data) {
 			let elements = data.listEntries;
 			new PNotify({
@@ -279,7 +367,10 @@ function getElementDetails() {
 		.catch(error => console.error(error));
 }
 
-
+/**
+ * Element abhacken
+ * @param id
+ */
 function checkElement(id) {
 	//TODO check
 	myFetch('secure/checkElement', {element: id}, "POST")
@@ -289,6 +380,10 @@ function checkElement(id) {
 		.catch(error => console.error(error));
 }
 
+/**
+ * Delete Element mit id xxx
+ * @param id
+ */
 function deleteElement(id) {
 	let listID = document.querySelector("#myCurrentList").value;
 	//TODO url
@@ -305,6 +400,10 @@ function deleteElement(id) {
 		.catch(error => console.error(error));
 }
 
+/**
+ * Update Element mit id XXX
+ * @param id
+ */
 function updateElement(id) {
 	let listID = document.querySelector("#myCurrentList").value;
 	//TODO url
@@ -326,6 +425,10 @@ function updateElement(id) {
 		.catch(error => console.error(error));
 }
 
+/**
+ * Neues Element anlegen
+ * @param element
+ */
 function addNewElement(element) {
 	let text = element.value;
 	if (text.length > 2) {
@@ -411,59 +514,4 @@ function setBackgroundColor(color) {
 	if (color !== null)
 		document.querySelector("body").style.background = color;
 }
-
-//endregion
-
-//region Search User
-/**
- * searchForUserName
- * @param search --> Suchname
- * @param element --> DOM Element auf das die Suche angewendet werden soll
- */
-function searchForUserName(search, element) {
-	myFetch('secure/user/search/'+search, null, "GET")
-		.then(function (data) {
-			$(element).typeahead({source: data.data});
-		}) // JSON from `response.json()` call
-		.catch(error => console.error(error));
-}
-
-//endregion
-
-//region Onload
-$(function () {
-	document.querySelector("#mainContent").style.display = 'none';
-
-
-	$('#elementEditTimePicker').datetimepicker({
-		locale: 'de',
-		icons: {
-			time: "fas fa-clock",
-			date: "fas fa-calendar",
-			up: "fas fa-arrow-up",
-			down: "fas fa-arrow-down"
-		},
-		format: "DD.MM.YYYY",
-	});
-
-	$('#user_geburtsdatum').datetimepicker({
-		locale: 'de',
-		icons: {
-			time: "fas fa-clock",
-			date: "fas fa-calendar",
-			up: "fas fa-arrow-up",
-			down: "fas fa-arrow-down"
-		},
-		format: "DD.MM.YYYY",
-	});
-
-	$('#user_backgroundcolor').colorpicker({
-		format: "hex",
-		useAlpha: false,
-	});
-
-	PNotify.prototype.options.delay = 2000;
-
-	login();
-});
 //endregion

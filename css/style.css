@@ -15,3 +15,17 @@ body{
 .listElementOld{
   color: gray;
 }
+
+li{
+  font-size: 11pt;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+li i{
+  margin-right: 10px;
+}
+
+.liBgColor{
+  background-color: #f5f5f5;
+}

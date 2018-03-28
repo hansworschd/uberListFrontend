@@ -42,7 +42,9 @@ function myFetch(backendMethod, data, type) {
 			'content-type': 'application/json',
 			'authorization': USERTOKEN,
 		},
+		//mode: 'same-origin',
 		method: type, // *GET, POST, PUT, DELETE, etc.
+
 	}).then(response => response.json()).catch(error => console.log(error)); // parses response to JSON
 }
 
@@ -84,8 +86,6 @@ $(function () {
 	PNotify.prototype.options.delay = 2000;
 	PNotify.prototype.options.addclass ="stack-bottomright";
 
-	console.log(PNotify.prototype.options);
-
 	login();
 });
 //endregion
@@ -117,14 +117,22 @@ function login() {
 			password: password,
 		};
 		myFetch('authenticate', data, "POST").then(function (dat) {
-			USERTOKEN = dat.token;
-			USERNAME = dat.username;
-			//Ändern der Darstellung zwischen Main (Normale Seiten) und Login (ausgeloggt)
-			document.querySelector("#mainContent").style.display = 'block';
-			document.querySelector("#loginContent").style.display = 'none';
-			getUserData();
-			getLitsts();
-			setBackgroundColor(dat.color);
+			if(dat !== undefined){
+				USERTOKEN = dat.token;
+				USERNAME = dat.username;
+				//Ändern der Darstellung zwischen Main (Normale Seiten) und Login (ausgeloggt)
+				document.querySelector("#mainContent").style.display = 'block';
+				document.querySelector("#loginContent").style.display = 'none';
+				getUserData();
+				getLitsts();
+				setBackgroundColor(dat.color);
+			}
+			else{
+				new PNotify({
+					text: 'Fehler beim Login',
+					type: 'danger',
+				});
+			}
 		});
 	}
 }
@@ -287,15 +295,17 @@ function updateList(){
  */
 function deleteList() {
 	let id = document.querySelector("#listEditID").value;
-	myFetch('secure/list/'+id, null, "DELETE")
-		.then($('#listDetailsModal').modal("toggle"))
-		.then(
-			new PNotify({
-				text: 'Die Liste wurde gelöscht.',
-				type: 'warning'
-			})
-		).then(getLitsts());
 
+	if(confirm("Liste wirklich löschen?")){
+		myFetch('secure/list/'+id, null, "DELETE")
+			.then($('#listDetailsModal').modal("toggle"))
+			.then(
+				new PNotify({
+					text: 'Die Liste wurde gelöscht.',
+					type: 'warning'
+				})
+			).then(getLitsts());
+	}
 }
 
 /**
@@ -310,10 +320,6 @@ function addNewList(element) {
 
 		myFetch('secure/list', {title: title}, "POST")
 			.then(function (data) {
-				new PNotify({
-					text: 'Eine neue Liste wurde angelegt.',
-					type: 'success'
-				});
 				getLitsts();
 				element.value = "";
 			}) // JSON from `response.json()` call
@@ -348,6 +354,7 @@ function getElementsFromList(listID) {
 
 			let entries = data['listEntries'];
 
+			let bgColorCount = 0; //wird benötigt um Hintergrund korrekt darzustellen
 			for (let i = 0; i < entries.length; i++) {
 				let dat = entries[i];
 
@@ -358,7 +365,13 @@ function getElementsFromList(listID) {
 
 				}
 				else{
-					ul.innerHTML += `<li><a href="javascript:void(0)" onclick="getElementDetails('${dat._id}')"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="checkElement('${dat._id}')"><i class="fas fa-check"></i></a> ${dat.title}</li>`
+					bgColorCount++
+					let bgClass = null;
+					if(bgColorCount % 2 === 0){
+						bgClass = "liBgColor";
+					}
+
+					ul.innerHTML += `<li class="${bgClass}"> <a href="javascript:void(0)" onclick="checkElement('${dat._id}')"><i class="far fa-square" id="checkElementSquare_${dat._id}"></i></a> <a href="javascript:void(0)" onclick="getElementDetails('${dat._id}')"><i class="fas fa-pencil-alt"></i></a> ${dat.title}</li>`
 
 				}
 
@@ -394,16 +407,10 @@ function getElementDetails(id) {
  * @param id
  */
 function checkElement(id) {
-	let listID = document.querySelector("#myCurrentList").value;
+	document.querySelector("#checkElementSquare_"+id).className = "far fa-check-square";
+
 	//TODO check
 	myFetch('secure/list_entry/check/'+id, {isDone: true}, "POST")
-		.then(function (data) {
-			new PNotify({
-				text: 'Das Element wurde abgehakt',
-				type: 'success'
-			});
-			getElementsFromList(listID);
-		}) // JSON from `response.json()` call
 		.catch(error => console.error(error));
 }
 
@@ -472,10 +479,6 @@ function addNewElement(element) {
 
 		myFetch('secure/list_entry', post, "POST")
 			.then(function (data) {
-				new PNotify({
-					text: 'Ein neues Element wurde angefügt.',
-					type: 'success'
-				});
 				getElementsFromList(listID);
 				element.value = "";
 			}) // JSON from `response.json()` call
@@ -509,6 +512,7 @@ function getUserData() {
 
 $("#form-user-data").submit(function(e){
 	e.preventDefault();
+
 	let update = {
 		"name": document.querySelector("#user_name").value,
 		"strasse": document.querySelector("#user_anschrift").value,
@@ -519,20 +523,34 @@ $("#form-user-data").submit(function(e){
 	};
 
 	let password = document.querySelector("#user_password").value;
+	let password_check = document.querySelector("#user_password_check").value;
+
+
 	if(password !== ""){
 		update.password = password;
 	}
 
-	myFetch('secure/user', update , "POST")
-		.then(function (data) {
-			console.log(data);
-			new PNotify({
-				text: 'Die geänderten Daten wurden gespeichert',
-				type: 'success'
-			});
-			getUserData();
-		})
-		.catch(error => console.error(error));
+	if(password_check === password){
+		myFetch('secure/user', update , "POST")
+			.then(function (data) {
+				console.log(data);
+				new PNotify({
+					text: 'Die geänderten Daten wurden gespeichert',
+					type: 'success'
+				});
+				getUserData();
+			})
+			.catch(error => console.error(error));
+	}
+	else{
+		new PNotify({
+			text: 'Die Passwörter stimmen nicht überein.',
+			type: 'warning'
+		});
+	}
+
+
+
 });
 
 

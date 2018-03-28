@@ -82,7 +82,7 @@ $(function () {
 	});
 
 	PNotify.prototype.options.delay = 2000;
-
+	PNotify.prototype.options.addclass ="stack-bottomright";
 
 	console.log(PNotify.prototype.options);
 

@@ -83,6 +83,9 @@ $(function () {
 
 	PNotify.prototype.options.delay = 2000;
 
+
+	console.log(PNotify.prototype.options);
+
 	login();
 });
 //endregion
@@ -145,7 +148,6 @@ $("#form-register").submit(function (e) {
 
 	if (password !== passwordCheck) {
 		new PNotify({
-			title: 'Fehler!',
 			text: 'Die Passwörter stimmen nicht überein.',
 			type: 'danger'
 		});
@@ -159,7 +161,6 @@ $("#form-register").submit(function (e) {
 		myFetch('register', sendData, "POST")
 			.then(function (dat) {
 				new PNotify({
-					title: 'Success!',
 					text: 'Der Benutzer wurde angelegt.',
 					type: 'success'
 				});
@@ -272,7 +273,6 @@ function updateList(){
 	myFetch('secure/list/'+id, data, "PATCH")
 		.then(function (data) {
 			new PNotify({
-				title: 'Success!',
 				text: 'Die Liste wurde aktualisiert.',
 				type: 'success'
 			});
@@ -291,7 +291,6 @@ function deleteList() {
 		.then($('#listDetailsModal').modal("toggle"))
 		.then(
 			new PNotify({
-				title: 'Delete!',
 				text: 'Die Liste wurde gelöscht.',
 				type: 'warning'
 			})
@@ -312,7 +311,6 @@ function addNewList(element) {
 		myFetch('secure/list', {title: title}, "POST")
 			.then(function (data) {
 				new PNotify({
-					title: 'Success!',
 					text: 'Eine neue Liste wurde angelegt.',
 					type: 'success'
 				});
@@ -401,7 +399,6 @@ function checkElement(id) {
 	myFetch('secure/list_entry/check/'+id, {isDone: true}, "POST")
 		.then(function (data) {
 			new PNotify({
-				title: 'Success!',
 				text: 'Das Element wurde abgehakt',
 				type: 'success'
 			});
@@ -421,7 +418,6 @@ function deleteElement() {
 	myFetch('secure/list_entry/'+id, null, "DELETE")
 		.then(function () {
 			new PNotify({
-				title: 'Delete!',
 				text: 'Das Element wurde gelöscht',
 				type: 'warning'
 			});
@@ -448,7 +444,6 @@ function updateElement() {
 	myFetch('secure/list_entry/'+id, data, "PATCH")
 		.then(function (data) {
 			new PNotify({
-				title: 'Success!',
 				text: 'Das Element wurde aktualisiert.',
 				type: 'success'
 			});
@@ -478,7 +473,6 @@ function addNewElement(element) {
 		myFetch('secure/list_entry', post, "POST")
 			.then(function (data) {
 				new PNotify({
-					title: 'Success!',
 					text: 'Ein neues Element wurde angefügt.',
 					type: 'success'
 				});
@@ -533,7 +527,6 @@ $("#form-user-data").submit(function(e){
 		.then(function (data) {
 			console.log(data);
 			new PNotify({
-				title: 'Success!',
 				text: 'Die geänderten Daten wurden gespeichert',
 				type: 'success'
 			});

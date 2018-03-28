@@ -169,7 +169,8 @@ function logout() {
 			document.querySelector("#loginContent").style.display = 'block';
 		});
 
-	localStorage.clear();
+	localStorage.setItem("uberListUsername", "");
+	localStorage.setItem("uberListPassword", "");
 }
 
 /**
@@ -324,6 +325,9 @@ function addNewList(element) {
 function getElementsFromList(listID) {
 	myFetch('secure/list_entry/getall/'+listID,null, "GET")
 		.then(function (data) {
+
+
+
 			document.querySelector("#myCurrentList").value = listID;
 
 			document.querySelector("#showElements").style.display = "block";
@@ -334,11 +338,11 @@ function getElementsFromList(listID) {
 			let ul = document.querySelector("#listElements-element-ul");
 			ul.innerHTML = "";
 
-			let entries = data['listEntries']
+			let entries = data['listEntries'];
 
 			for (let i = 0; i < entries.length; i++) {
 				let dat = entries[i];
-				ul.innerHTML += `<li><a href="javascript:void(0)" onclick="getElementDetails('${dat._id}')"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="checkElement('${dat._id}')"><i class="fas fa-check"></i></a> ${dat.name}</li>`
+				ul.innerHTML += `<li><a href="javascript:void(0)" onclick="getElementDetails('${dat._id}')"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="checkElement('${dat._id}')"><i class="fas fa-check"></i></a> ${dat.title}</li>`
 			}
 		}) // JSON from `response.json()` call
 		.catch(error => console.error(error));
@@ -351,16 +355,14 @@ function getElementsFromList(listID) {
 function getElementDetails(id) {
 	myFetch('secure/list_entry/'+id,null, "GET")
 		.then(function (data) {
-			let elements = data.listEntries;
-			new PNotify({
-				title: 'Success!',
-				text: 'Eine neue Liste wurde angelegt.',
-				type: 'success'
-			});
-			document.querySelector("#elementEditName").value = elements.name;
-			document.querySelector("#elementEditOrt").value = elements.place;
-			document.querySelector("#elementEditTimePicker").value = elements.time;
-			document.querySelector("#elementEditFreetext").value = elements.freetext;
+			let element = data;
+
+			console.log(element);
+
+			document.querySelector("#elementEditName").value = element.title;
+			document.querySelector("#elementEditOrt").value = "GEHT NOCH NICHT";
+			document.querySelector("#elementEditTimePicker").value = element.deadline;
+			document.querySelector("#elementEditFreetext").value = "GEHT NOCH NICHT";
 
 			$('#elementsDetailsModal').modal("toggle");
 		}) // JSON from `response.json()` call
@@ -384,8 +386,10 @@ function checkElement(id) {
  * Delete Element mit id xxx
  * @param id
  */
-function deleteElement(id) {
+function deleteElement() {
 	let listID = document.querySelector("#myCurrentList").value;
+	let id = document.querySelector("#elementEditID").value;
+
 	//TODO url
 	myFetch('secure/list_entry/'+id, null, "DELETE")
 		.then(function (data) {
@@ -404,15 +408,17 @@ function deleteElement(id) {
  * Update Element mit id XXX
  * @param id
  */
-function updateElement(id) {
+function updateElement() {
 	let listID = document.querySelector("#myCurrentList").value;
-	//TODO url
+	let id = document.querySelector("#elementEditID").value;
 
 	let data = {
-
+		title: document.querySelector("#elementEditName").value,
+		deadline: document.querySelector("#elementEditTimePicker").value,
+		place: document.querySelector("#elementEditOrt").value
 	};
 
-	myFetch('secure/list_entry'+id, data, "PATCH")
+	myFetch('secure/list_entry/'+id, data, "PATCH")
 		.then(function (data) {
 			new PNotify({
 				title: 'Success!',
@@ -431,6 +437,9 @@ function updateElement(id) {
  */
 function addNewElement(element) {
 	let text = element.value;
+
+	console.log(text);
+
 	if (text.length > 2) {
 		let listID = document.querySelector("#myCurrentList").value;
 
@@ -438,7 +447,6 @@ function addNewElement(element) {
 			"listId": listID,
 			"title": text
 		};
-
 
 		myFetch('secure/list_entry', post, "POST")
 			.then(function (data) {

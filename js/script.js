@@ -358,8 +358,6 @@ function getElementsFromList(listID) {
 			for (let i = 0; i < entries.length; i++) {
 				let dat = entries[i];
 
-				console.log(dat.isDone);
-
 				if(dat.isDone === true){
 					ulDone.innerHTML += `<li class="listElementOld">${dat.title}</li>`;
 
@@ -388,8 +386,6 @@ function getElementDetails(id) {
 	myFetch('secure/list_entry/'+id,null, "GET")
 		.then(function (data) {
 			let element = data;
-
-			console.log(element);
 
 			document.querySelector("#elementEditName").value = element.title;
 			document.querySelector("#elementEditOrt").value = "GEHT NOCH NICHT";
@@ -467,8 +463,6 @@ function updateElement() {
 function addNewElement(element) {
 	let text = element.value;
 
-	console.log(text);
-
 	if (text.length > 2) {
 		let listID = document.querySelector("#myCurrentList").value;
 
@@ -533,7 +527,6 @@ $("#form-user-data").submit(function(e){
 	if(password_check === password){
 		myFetch('secure/user', update , "POST")
 			.then(function (data) {
-				console.log(data);
 				new PNotify({
 					text: 'Die geänderten Daten wurden gespeichert',
 					type: 'success'

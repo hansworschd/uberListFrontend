@@ -500,9 +500,11 @@ $("#form-user-data").submit(function(e){
 		update.password = password;
 	}
 
+	console.log(update);
 
 	myFetch('secure/user', update , "POST")
 		.then(function (data) {
+			console.log(data);
 			new PNotify({
 				title: 'Success!',
 				text: 'Die geänderten Daten wurden gespeichert',

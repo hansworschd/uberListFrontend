@@ -65,10 +65,12 @@
 										<div class="input-group-text"><i class="fas fa-plus"></i></div>
 									</div>
 								</div>
-								<ul class="list-unstyled" id="listView-list-ul"></ul>
+								<hr/>
+								<ul class="list-unstyled" id="listView-list-ul">
+								</ul>
 							</div>
 							<div id="showElements" style="display:none">
-								<h4 id="listNameHeading"></h4>
+								<h4 id="listNameHeading">ListenTitel</h4>
 								<!-- benötigt dieses Hidden Field für das Anfügen an die richtige Liste! -->
 								<input type="hidden" id="myCurrentList">
 								<div class="input-group">
@@ -78,7 +80,13 @@
 									</div>
 								</div>
 								<ul class="list-unstyled" id="listElements-element-ul"></ul>
-								<a href="javascript:void(0)" onclick="showLists()">Zurück</a>
+								<hr/>
+								<p></p>
+								<a data-toggle="collapse" href="#listElementsDone-element-ul" role="button" aria-expanded="false" aria-controls="listElementsDone-element-ul">
+									Erledigte Elemente:
+								</a>
+								<ul class="list-unstyled collapse" id="listElementsDone-element-ul"></ul>
+								<p><a href="javascript:void(0)" onclick="showLists()">Zurück</a></p>
 							</div>
 						</div>
 						<!-- Darstellung des Users -->
@@ -222,10 +230,10 @@
 						<div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
 							<form id="form-login">
 								<div class="form-group">
-									<label>Username</label> <input type="text" class="form-control" id="loginUsername" placeholder="Username" name="loginUsername">
+									<label>Username</label> <input type="text" class="form-control" id="loginUsername" placeholder="Username" name="loginUsername" required>
 								</div>
 								<div class="form-group">
-									<label>Passwort</label> <input type="password" class="form-control" id="loginPassword" name="loginPassword">
+									<label>Passwort</label> <input type="password" class="form-control" id="loginPassword" name="loginPassword" required>
 								</div>
 								<button type="submit" class="btn btn-primary">Login</button>
 							</form>
@@ -233,13 +241,13 @@
 						<div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
 							<form id="form-register">
 								<div class="form-group">
-									<label>Username</label> <input type="text" class="form-control" id="registerUsername" placeholder="Username" name="username">
+									<label>Username</label> <input type="text" class="form-control" id="registerUsername" placeholder="Username" name="username" required>
 								</div>
 								<div class="form-group">
-									<label>E-Mail</label> <input type="email" class="form-control" id="registerEmail" placeholder="Enter email" name="email">
+									<label>E-Mail</label> <input type="email" class="form-control" id="registerEmail" placeholder="Enter email" name="email" required>
 								</div>
 								<div class="form-group">
-									<label>Passwort</label> <input type="password" class="form-control" id="registerPassword" placeholder="Password" name="password">
+									<label>Passwort</label> <input type="password" class="form-control" id="registerPassword" placeholder="Password" name="password" required>
 								</div>
 								<div class="form-group">
 									<label>Passwort Check</label> <input type="password" class="form-control" id="registerPasswordCheck" placeholder="Password Check">

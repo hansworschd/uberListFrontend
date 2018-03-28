@@ -12,6 +12,6 @@ body{
   margin-bottom: 10px;
 }
 
-.logoutLink{
-
+.listElementOld{
+  color: gray;
 }

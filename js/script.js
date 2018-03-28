@@ -144,7 +144,11 @@ $("#form-register").submit(function (e) {
 	let email = document.querySelector("#registerEmail").value;
 
 	if (password !== passwordCheck) {
-		alert("Password ungleich");
+		new PNotify({
+			title: 'Fehler!',
+			text: 'Die Passwörter stimmen nicht überein.',
+			type: 'danger'
+		});
 	}
 	else {
 		let sendData = {
@@ -154,7 +158,11 @@ $("#form-register").submit(function (e) {
 		};
 		myFetch('register', sendData, "POST")
 			.then(function (dat) {
-				alert("Registriert");
+				new PNotify({
+					title: 'Success!',
+					text: 'Der Benutzer wurde angelegt.',
+					type: 'success'
+				});
 			}) // JSON from `response.json()` call
 	}
 });
@@ -323,11 +331,10 @@ function addNewList(element) {
  * @param listID
  */
 function getElementsFromList(listID) {
+
+
 	myFetch('secure/list_entry/getall/'+listID,null, "GET")
 		.then(function (data) {
-
-
-
 			document.querySelector("#myCurrentList").value = listID;
 
 			document.querySelector("#showElements").style.display = "block";
@@ -336,13 +343,27 @@ function getElementsFromList(listID) {
 			//document.querySelector("#listNameHeading").innerHTML = data['name'];
 
 			let ul = document.querySelector("#listElements-element-ul");
-			ul.innerHTML = "";
+			ul.innerHTML = "<br>";
+
+			let ulDone = document.querySelector("#listElementsDone-element-ul");
+			ulDone.innerHTML = "";
 
 			let entries = data['listEntries'];
 
 			for (let i = 0; i < entries.length; i++) {
 				let dat = entries[i];
-				ul.innerHTML += `<li><a href="javascript:void(0)" onclick="getElementDetails('${dat._id}')"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="checkElement('${dat._id}')"><i class="fas fa-check"></i></a> ${dat.title}</li>`
+
+				console.log(dat.isDone);
+
+				if(dat.isDone === true){
+					ulDone.innerHTML += `<li class="listElementOld">${dat.title}</li>`;
+
+				}
+				else{
+					ul.innerHTML += `<li><a href="javascript:void(0)" onclick="getElementDetails('${dat._id}')"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="checkElement('${dat._id}')"><i class="fas fa-check"></i></a> ${dat.title}</li>`
+
+				}
+
 			}
 		}) // JSON from `response.json()` call
 		.catch(error => console.error(error));
@@ -361,8 +382,9 @@ function getElementDetails(id) {
 
 			document.querySelector("#elementEditName").value = element.title;
 			document.querySelector("#elementEditOrt").value = "GEHT NOCH NICHT";
-			document.querySelector("#elementEditTimePicker").value = element.deadline;
+			document.querySelector("#elementEditTimePicker").value = moment(element.deadline).format("DD.MM.YYYY");
 			document.querySelector("#elementEditFreetext").value = "GEHT NOCH NICHT";
+			document.querySelector("#elementEditID").value = element._id;
 
 			$('#elementsDetailsModal').modal("toggle");
 		}) // JSON from `response.json()` call
@@ -374,10 +396,16 @@ function getElementDetails(id) {
  * @param id
  */
 function checkElement(id) {
+	let listID = document.querySelector("#myCurrentList").value;
 	//TODO check
-	myFetch('secure/checkElement', {element: id}, "POST")
+	myFetch('secure/list_entry/check/'+id, {isDone: true}, "POST")
 		.then(function (data) {
-
+			new PNotify({
+				title: 'Success!',
+				text: 'Das Element wurde abgehakt',
+				type: 'success'
+			});
+			getElementsFromList(listID);
 		}) // JSON from `response.json()` call
 		.catch(error => console.error(error));
 }
@@ -390,9 +418,8 @@ function deleteElement() {
 	let listID = document.querySelector("#myCurrentList").value;
 	let id = document.querySelector("#elementEditID").value;
 
-	//TODO url
 	myFetch('secure/list_entry/'+id, null, "DELETE")
-		.then(function (data) {
+		.then(function () {
 			new PNotify({
 				title: 'Delete!',
 				text: 'Das Element wurde gelöscht',
@@ -414,7 +441,7 @@ function updateElement() {
 
 	let data = {
 		title: document.querySelector("#elementEditName").value,
-		deadline: document.querySelector("#elementEditTimePicker").value,
+		deadline: moment(document.querySelector("#elementEditTimePicker").value,"DD.MM.YYYY").toJSON(),
 		place: document.querySelector("#elementEditOrt").value
 	};
 
@@ -494,7 +521,7 @@ $("#form-user-data").submit(function(e){
 		"plz": document.querySelector("#user_plz").value,
 		"ort": document.querySelector("#user_ort").value,
 		"email": document.querySelector("#user_email").value,
-		"gebDate": moment(document.querySelector("#user_geburtsdatum").value,"DD.MM.YYYY").toJSON(),
+		"gebDate": moment(document.querySelector("#user_geburtsdatum").value,"DD.MM.YYYY").toJSON(), //da Backend einen JSON Datumsobject benötigt
 	};
 
 	let password = document.querySelector("#user_password").value;
@@ -521,7 +548,7 @@ $("#form-user-data").submit(function(e){
  * @param color
  */
 function setBackgroundColor(color) {
-	if (color !== null)
+	if (color !== null && color !== undefined)
 		document.querySelector("body").style.background = color;
 }
 //endregion

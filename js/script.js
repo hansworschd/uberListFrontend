@@ -479,7 +479,9 @@ function getUserData() {
 			document.querySelector("#user_ort").value = user.ort;
 			document.querySelector("#user_telefon").value = user.telefonnummer;
 			document.querySelector("#user_email").value = user.email;
-			document.querySelector("#user_geburtsdatum").value = user.gebDate;
+
+			//TODO: Datum korrekt formatieren
+			document.querySelector("#user_geburtsdatum").value = moment(user.gebDate).format("DD.MM.YYYY");
 		}) // JSON from `response.json()` call
 		.catch(error => console.error(error));
 }
@@ -492,15 +494,13 @@ $("#form-user-data").submit(function(e){
 		"plz": document.querySelector("#user_plz").value,
 		"ort": document.querySelector("#user_ort").value,
 		"email": document.querySelector("#user_email").value,
-		"gebDate": document.querySelector("#user_geburtsdatum").value,
+		"gebDate": moment(document.querySelector("#user_geburtsdatum").value,"DD.MM.YYYY").toJSON(),
 	};
 
 	let password = document.querySelector("#user_password").value;
 	if(password !== ""){
 		update.password = password;
 	}
-
-	console.log(update);
 
 	myFetch('secure/user', update , "POST")
 		.then(function (data) {

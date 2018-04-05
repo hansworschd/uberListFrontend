@@ -22,10 +22,22 @@ li{
   margin-bottom: 5px;
 }
 
-li i{
+li i {
   margin-right: 10px;
+}
+
+.nav li i{
+  margin: auto;
 }
 
 .liBgColor{
   background-color: #f5f5f5;
+}
+
+.loading {
+  background-color: #ffffff;
+  background-image: url("http://loadinggif.com/images/image-selection/3.gif");
+  background-size: 25px 25px;
+  background-position:right center;
+  background-repeat: no-repeat;
 }

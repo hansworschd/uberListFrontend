@@ -33,7 +33,6 @@
 	<script src="js/bootstrap3-typeahead.min.js"></script>
 	<script src="js/moment-with-locales.min.js"></script>
 	<script src="js/bootstrap-datetimepicker.min.js"></script>
-	<script src="js/bootstrap-waitingfor.min.js"></script>
 	<script src="js/bootstrap-colorpicker.min.js"></script>
 	<script src="js/pnotify.custom.min.js"></script>
 
@@ -211,7 +210,7 @@
 								<!--Button zum Abschicken-->
 								<div class="form-group">
 									<button class="btn btn-primary" type="submit" value="save" name="action">
-										Änderungen speichern
+										<i class="fas fa-save"></i>
 									</button>
 								</div>
 							</form>
@@ -303,7 +302,7 @@
 							<div class="form-group">
 								<label>Neuen User der Liste hinzufügen</label>
 								<div class="input-group">
-									<input type="text" class="form-control" id="listEditUser" onkeyup="searchForUserName(this.value,this)">
+									<input type="text" class="form-control" id="listEditUser" onchange="addMemberToList(this.value)" onkeyup="searchForUserName(this.value,this)">
 									<div class="input-group-append">
 										<div class="input-group-text"><i class="fas fa fa-user"></i></div>
 									</div>
@@ -317,14 +316,13 @@
 						</form>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-danger" onclick="deleteList()">Löschen <i class="fas fa-trash"></i></button>
-						<button type="button" class="btn btn-primary" onclick="updateList()">Speichern <i class="fas fa-save"></i></button>
-						<button type="button" class="btn btn-secondary" data-dismiss="modal">Schließen <i class="fas fa-times"></i></button>
+						<button type="button" class="btn btn-danger" onclick="deleteList()"><i class="fas fa-trash"></i></button>
+						<button type="button" class="btn btn-primary" onclick="updateList()"><i class="fas fa-save"></i></button>
+						<button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i></button>
 					</div>
 				</div>
 			</div>
 		</div>
-
 
 		<!-- Element -->
 		<div class="modal" tabindex="-1" role="dialog" id="elementsDetailsModal">
@@ -341,7 +339,6 @@
 							<input type="hidden" id="elementEditID" name="elementEditID">
 							<div class="form-group">
 								<label>Name</label>
-
 								<div class="input-group">
 									<input type="text" id="elementEditName" name="elementEditName" class="form-control">
 									<div class="input-group-append">
@@ -349,8 +346,6 @@
 									</div>
 								</div>
 							</div>
-
-
 							<div class="form-group">
 								<label>Ort</label>
 								<div class="input-group">
@@ -372,7 +367,7 @@
 							</div>
 
 							<div class="form-group">
-								<label>Neuen User zuweisen</label>
+								<label>User</label>
 								<div class="input-group">
 									<input type="text" class="form-control" id="elementEditUserSearch" onkeyup="searchForUserName(this.value,this)" name="elementEditUserSearch">
 									<div class="input-group-append">
@@ -388,9 +383,9 @@
 						</form>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-danger" onclick="deleteElement()">Löschen <i class="fas fa-trash"></i></button>
-						<button type="button" class="btn btn-primary" onclick="updateElement()">Speichern <i class="fas fa-save"></i></button>
-						<button type="button" class="btn btn-secondary" data-dismiss="modal">Schließen <i class="fas fa-times"></i></button>
+						<button type="button" class="btn btn-danger" onclick="deleteElement()"><i class="fas fa-trash"></i></button>
+						<button type="button" class="btn btn-primary" onclick="updateElement()"><i class="fas fa-save"></i></button>
+						<button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i></button>
 					</div>
 				</div>
 			</div>
@@ -401,5 +396,4 @@
 </body>
 <!-- Eigenes JS -->
 <script src="js/script.js"></script>
-
 </html>

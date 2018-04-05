@@ -24,7 +24,6 @@ let URL = "http://uberlistwebapi.azurewebsites.net/";
  * @returns {Promise<any>}
  */
 function myFetch(backendMethod, data, type) {
-	//waitingDialog.show();
 	let url = URL + backendMethod;
 
 	if (data !== null && data !== undefined) {
@@ -33,20 +32,31 @@ function myFetch(backendMethod, data, type) {
 	else {
 		data = undefined;
 	}
-	// Default options are marked with *
 
-	//waitingDialog.hide();
-	return fetch(url, {
-		body: data, // must match 'Content-Type' header
-		headers: {
-			'content-type': 'application/json',
-			'authorization': USERTOKEN,
+	let res = $.ajax({
+		url: url,
+		type: type,
+		async: false,
+		cache: false,
+		timeout: 30000,
+		data: data,
+		beforeSend: function(request) {
+			request.setRequestHeader("authorization", USERTOKEN);
+			request.setRequestHeader("content-type", 'application/json');
 		},
-		//mode: 'same-origin',
-		method: type, // *GET, POST, PUT, DELETE, etc.
+		error: function(error){
+			console.log("error",error);
+			return false;
+		},
+		success: function(response){
+			return response;
+		},
+	});
 
-	}).then(response => response.json()).catch(error => console.log(error)); // parses response to JSON
+	return res;
 }
+
+
 
 /**
  * Onload mit jQuery
@@ -196,11 +206,15 @@ function logout() {
  * @param element --> DOM Element auf das die Suche angewendet werden soll
  */
 function searchForUserName(search, element) {
+	element.classList.add("loading");
+
 	myFetch('secure/user/search/'+search, null, "GET")
 		.then(function (data) {
 			$(element).typeahead({source: data.data});
 		}) // JSON from `response.json()` call
 		.catch(error => console.error(error));
+
+	element.classList.remove("loading");
 }
 //endregion
 
@@ -235,20 +249,41 @@ function showListDetails(id) {
 			document.querySelector("#listEditID").value = list._id;
 			document.querySelector("#listEditName").value = list.title;
 			document.querySelector("#listEditFreetext").value = list.description;
+
+			loadListMemberShip(list._id);
 		});
 
-		myFetch('secure/list_membership/'+id, null, "GET")
-			.then(function (data) {
 
-			  let memberList = "Leider keine Benutzer gefunden..."
-				let members = data.membership;
-				for(let i = 0; i<members.length;i++){
-					memberList = `<p>${members[i]}</p>`;
-				}
-				document.querySelector("#listEditMembers").textContent = memberList;
-			});
 
 	$('#listDetailsModal').modal("toggle");
+}
+
+function loadListMemberShip(id){
+	myFetch('secure/list_membership/'+id, null, "GET")
+		.then(function (data) {
+			let memberList = "Leider keine Benutzer gefunden..."
+			let members = data.membership;
+			for(let i = 0; i<members.length;i++){
+				memberList = `<p>${members[i]} <a href="javascript:void(0)" onclick="deleteListMemberShip(${members[i]},${id})"></a></p>`;
+			}
+			document.querySelector("#listEditMembers").textContent = memberList;
+		});
+}
+
+function addMemberToList(username){
+	let id = document.querySelector("#listEditID").value;
+	myFetch('secure/list_membership/'+id, {username: username, listId: id}, "POST")
+		.then(function () {
+			loadListMemberShip(id);
+		});
+}
+
+//TODO
+function deleteListMemberShip(username,id){
+	myFetch('secure/list_membership/', {username: username,listId: id}, "DELETE")
+		.then(function () {
+			loadListMemberShip(id);
+		});
 }
 
 /**
@@ -387,11 +422,13 @@ function getElementDetails(id) {
 		.then(function (data) {
 			let element = data;
 
+
 			document.querySelector("#elementEditName").value = element.title;
-			document.querySelector("#elementEditOrt").value = "GEHT NOCH NICHT";
+			document.querySelector("#elementEditOrt").value = element.place;
 			document.querySelector("#elementEditTimePicker").value = moment(element.deadline).format("DD.MM.YYYY");
-			document.querySelector("#elementEditFreetext").value = "GEHT NOCH NICHT";
+			document.querySelector("#elementEditFreetext").value = element.description;
 			document.querySelector("#elementEditID").value = element._id;
+			document.querySelector("#elementEditUserSearch").value = element.assignTo;
 
 			$('#elementsDetailsModal').modal("toggle");
 		}) // JSON from `response.json()` call
@@ -441,7 +478,9 @@ function updateElement() {
 	let data = {
 		title: document.querySelector("#elementEditName").value,
 		deadline: moment(document.querySelector("#elementEditTimePicker").value,"DD.MM.YYYY").toJSON(),
-		place: document.querySelector("#elementEditOrt").value
+		place: document.querySelector("#elementEditOrt").value,
+		description: document.querySelector("#elementEditFreetext").value,
+		assignTo: document.querySelector("#elementEditUserSearch").value,
 	};
 
 	myFetch('secure/list_entry/'+id, data, "PATCH")
@@ -479,9 +518,7 @@ function addNewElement(element) {
 			.catch(error => console.error(error));
 	}
 }
-
 //endregion
-
 //region User
 /**
  * Lade Userdaten
@@ -497,9 +534,15 @@ function getUserData() {
 			document.querySelector("#user_ort").value = user.ort;
 			document.querySelector("#user_telefon").value = user.telefonnummer;
 			document.querySelector("#user_email").value = user.email;
-
-			//TODO: Datum korrekt formatieren
+			document.querySelector("#user_backgroundcolor").value = user.color;
 			document.querySelector("#user_geburtsdatum").value = moment(user.gebDate).format("DD.MM.YYYY");
+
+
+			document.querySelector("body").style.background = user.color;
+
+			//console.log(document.querySelector("body").style.background);
+
+
 		}) // JSON from `response.json()` call
 		.catch(error => console.error(error));
 }
@@ -513,6 +556,7 @@ $("#form-user-data").submit(function(e){
 		"plz": document.querySelector("#user_plz").value,
 		"ort": document.querySelector("#user_ort").value,
 		"email": document.querySelector("#user_email").value,
+		"color": document.querySelector("#user_backgroundcolor").value,
 		"gebDate": moment(document.querySelector("#user_geburtsdatum").value,"DD.MM.YYYY").toJSON(), //da Backend einen JSON Datumsobject benötigt
 	};
 

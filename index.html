@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="de">
-<!-- von Lukas Ewald-->
+<!--
+	uberListFrontend - eine Anwendung für die Vorlesung "Webbasierte Datenbankanwendung"
+	an der Dualen Hochschule Baden Württemberg Karlusrhe
+
+	diese Seite wurde von Lukas Ewald erstellt.
+
+
+
+-->
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -250,7 +258,7 @@
 						<div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
 							<form id="form-register">
 								<div class="form-group">
-									<label>Username</label> <input type="text" class="form-control" id="registerUsername" placeholder="Username" name="username" required>
+									<label>Username</label> <input type="text" class="form-control" id="registerUsername" placeholder="Username" name="username" required min="3">
 								</div>
 								<div class="form-group">
 									<label>E-Mail</label> <input type="email" class="form-control" id="registerEmail" placeholder="Enter email" name="email" required>

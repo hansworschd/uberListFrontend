@@ -48,6 +48,10 @@ function myFetch(backendMethod, data, type) {
 		},
 		error: function(error){
 			console.log("error",error);
+			new PNotify({
+				text: 'Da lief wohl was schief..',
+				type: 'warning',
+			});
 			return false;
 		},
 		success: function(response){
@@ -286,9 +290,9 @@ function loadListMemberShip(id){
 			let memberList = "Leider keine Benutzer gefunden..."
 			let members = data.membership;
 			for(let i = 0; i<members.length;i++){
-				memberList = `<p>${members[i]} <a href="javascript:void(0)" onclick="deleteListMemberShip(${members[i]},${id})"></a></p>`;
+				memberList = `<p>${members[i].user} <a href="javascript:void(0)" onclick='deleteListMemberShip("${members[i]._id}")'><i class='fas fa-trash'></i></a></p>`;
 			}
-			document.querySelector("#listEditMembers").textContent = memberList;
+			document.querySelector("#listEditMembers").innerHTML = memberList;
 		});
 }
 
@@ -309,9 +313,11 @@ function addMemberToList(username){
 	* @param username
 	* @param id --> ID der Liste von die der User entfernt werden soll
 */
-//TODO
-function deleteListMemberShip(username,id){
-	myFetch('secure/list_membership/', {username: username,listId: id}, "DELETE")
+
+//TODO Bla
+
+function deleteListMemberShip(id){
+	myFetch('secure/list_membership/'+id, null, "DELETE")
 		.then(function () {
 			loadListMemberShip(id);
 		});
@@ -564,12 +570,13 @@ function getUserData() {
 	myFetch('secure/user', null, "GET")
 		.then(function (data) {
 			let user = data.user;
+
 			document.querySelector("#user_username").value = user.username;
 			document.querySelector("#user_name").value = user.name;
 			document.querySelector("#user_anschrift").value = user.strasse;
 			document.querySelector("#user_plz").value = user.plz;
 			document.querySelector("#user_ort").value = user.ort;
-			document.querySelector("#user_telefon").value = user.telefonnummer;
+			//document.querySelector("#user_telefon").value = user.telefonnummer;
 			document.querySelector("#user_email").value = user.email;
 			document.querySelector("#user_backgroundcolor").value = user.color;
 			document.querySelector("#user_geburtsdatum").value = moment(user.gebDate).format("DD.MM.YYYY");
@@ -605,7 +612,7 @@ $("#form-user-data").submit(function(e){
 					type: 'success'
 				});
 				getUserData();
-				setBackgroundColor(data.color);
+				setBackgroundColor(data.newUser.color);
 			});
 	}
 	else{

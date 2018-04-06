@@ -38,7 +38,7 @@ function myFetch(backendMethod, data, type) {
 		type: type,
 		async: false,
 		cache: false,
-		timeout: 5000,
+		timeout: 10000,
 		data: data,
 		//wird für die Authentifizierung benötigt
 		beforeSend: function (request) {
@@ -49,15 +49,14 @@ function myFetch(backendMethod, data, type) {
 			console.log("error", error);
 			new PNotify({
 				text: 'Da lief wohl was schief..',
-				type: 'warning',
-			});
+				type: 'error',
+			})
 			return false;
 		},
 		success: function (response) {
 			return response;
 		},
 	});
-
 	return res;
 }
 
@@ -101,7 +100,7 @@ $(function () {
 
 //Globale Einstellungen für notify für die Darstellung von Meldungen
 	PNotify.prototype.options.delay = 2000;
-	PNotify.prototype.options.addclass = "stack-bottomright";
+	//PNotify.prototype.options.addclass = "stack-bottomright";
 //automatische prüfen des Logins
 	login();
 });
@@ -147,7 +146,6 @@ function login() {
 				getUserData();
 				getLitsts();
 				setBackgroundColor(dat.color);
-
 			}
 			else {
 				new PNotify({
@@ -237,7 +235,17 @@ function searchForUserName(search, element) {
 			.then(function (data) {
 				//Autocomplete mit Search Daten füllen
 				let source = data.data;
-				$(element).typeahead({source: source});
+
+				console.log(source);
+
+
+				$(element).typeahead({
+					afterSelect: function(){
+						addMemberToList(element)
+					},
+					source: source,
+				});
+
 			}) // JSON from `response.json()` call
 			.catch(error => console.error(error));
 
@@ -296,7 +304,7 @@ function loadListMemberShip(id) {
 			let memberList = "Leider keine Benutzer gefunden..."
 			let members = data.membership;
 			for (let i = 0; i < members.length; i++) {
-				memberList = `<p>${members[i].user} <a href="javascript:void(0)" onclick='deleteListMemberShip("${members[i].user}")'><i class='fas fa-trash'></i></a></p>`;
+				memberList += `<p>${members[i].user} <a href="javascript:void(0)" onclick='deleteListMemberShip("${members[i].user}")'><i class='fas fa-trash'></i></a></p>`;
 			}
 			document.querySelector("#listEditMembers").innerHTML = memberList;
 		});
@@ -320,8 +328,6 @@ function addMemberToList(element) {
  * @param username
  * @param id --> ID der Liste von die der User entfernt werden soll
  */
-
-//TODO Bla
 function deleteListMemberShip(userName) {
 	let listId = document.querySelector("#listEditID").value;
 	myFetch('secure/list_membership/' + listId, null, "GET")
@@ -338,9 +344,9 @@ function deleteListMemberShip(userName) {
 			myFetch('secure/list_membership/' + membership[userPos]._id, null, "DELETE")
 				.then(function () {
 					new PNotify({
-						text: 'Die Liste wurde gelöscht.',
+						text: 'Der User wurde von der Liste entfernt.',
 						type: 'warning'
-					})
+					});
 					loadListMemberShip(listId);
 				});
 		});
@@ -410,7 +416,7 @@ function deleteList() {
 		}
 	}).get().on('pnotify.confirm', function() {
 		myFetch('secure/list/' + id, null, "DELETE")
-			.then($('#listDetailsModal').modal("close"))
+			.then($('#listDetailsModal').modal("hide"))
 			.then(
 				new PNotify({
 					text: 'Die Liste wurde gelöscht.',
@@ -570,12 +576,17 @@ function updateElement() {
 	let listID = document.querySelector("#myCurrentList").value;
 	let id = document.querySelector("#elementEditID").value;
 
+	let assignTo = null;
+	if(document.querySelector("#elementEditUserSearch").value !== ""){
+		assignTo = document.querySelector("#elementEditUserSearch").value;
+	}
+
 	let data = {
 		title: document.querySelector("#elementEditName").value,
 		deadline: moment(document.querySelector("#elementEditTimePicker").value, "DD.MM.YYYY").toJSON(),
 		place: document.querySelector("#elementEditOrt").value,
 		description: document.querySelector("#elementEditFreetext").value,
-		assignTo: document.querySelector("#elementEditUserSearch").value,
+		assignTo: assignTo,
 	};
 
 	myFetch('secure/list_entry/' + id, data, "PATCH")

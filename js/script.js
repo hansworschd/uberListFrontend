@@ -10,7 +10,6 @@
  * Globale Variablen
  */
 let USERTOKEN = null;
-let USERNAME = null;
 let URL = "http://uberlistwebapi.azurewebsites.net/";
 
 /**
@@ -42,19 +41,19 @@ function myFetch(backendMethod, data, type) {
 		timeout: 5000,
 		data: data,
 		//wird für die Authentifizierung benötigt
-		beforeSend: function(request) {
+		beforeSend: function (request) {
 			request.setRequestHeader("authorization", USERTOKEN);
 			request.setRequestHeader("content-type", 'application/json');
 		},
-		error: function(error){
-			console.log("error",error);
+		error: function (error) {
+			console.log("error", error);
 			new PNotify({
 				text: 'Da lief wohl was schief..',
 				type: 'warning',
 			});
 			return false;
 		},
-		success: function(response){
+		success: function (response) {
 			return response;
 		},
 	});
@@ -102,8 +101,7 @@ $(function () {
 
 //Globale Einstellungen für notify für die Darstellung von Meldungen
 	PNotify.prototype.options.delay = 2000;
-	PNotify.prototype.options.addclass ="stack-bottomright";
-
+	PNotify.prototype.options.addclass = "stack-bottomright";
 //automatische prüfen des Logins
 	login();
 });
@@ -137,17 +135,21 @@ function login() {
 			password: password,
 		};
 		myFetch('authenticate', data, "POST").then(function (dat) {
-			if(dat !== undefined){
+			if (dat !== undefined) {
+
 				USERTOKEN = dat.token;
-				USERNAME = dat.username;
 				//Ändern der Darstellung zwischen Main (Normale Seiten) und Login (ausgeloggt)
 				document.querySelector("#mainContent").style.display = 'block';
 				document.querySelector("#loginContent").style.display = 'none';
+
+				document.querySelector("#usernameHead").innerHTML = " von " + username;
+
 				getUserData();
 				getLitsts();
 				setBackgroundColor(dat.color);
+
 			}
-			else{
+			else {
 				new PNotify({
 					text: 'Fehler beim Login',
 					type: 'danger',
@@ -158,9 +160,9 @@ function login() {
 }
 
 /**
-	*	Login submit
-	* Wird ausgelöst wenn Login Button gedrückt wird
-	*/
+ *    Login submit
+ * Wird ausgelöst wenn Login Button gedrückt wird
+ */
 $("#form-login").submit(function (e) {
 	e.preventDefault();
 	login();
@@ -194,10 +196,16 @@ $("#form-register").submit(function (e) {
 		myFetch('register', sendData, "POST")
 			.then(function (dat) {
 				new PNotify({
-					text: 'Der Benutzer wurde angelegt.',
+					text: 'Der Benutzer wurde angelegt und eingeloggt.',
 					type: 'success'
 				});
-			}) // JSON from `response.json()` call
+			})
+			.then(function () {
+				localStorage.setItem("uberListUsername", username);
+				localStorage.setItem("uberListPassword", password);
+				login();
+			}
+		);
 	}
 });
 
@@ -223,9 +231,9 @@ function logout() {
  */
 function searchForUserName(search, element) {
 //erst suchen wenn Begriff > 2 Wörter
-	if(search.length > 2){
+	if (search.length > 2) {
 		element.classList.add("loading");
-		myFetch('secure/user/search/'+search, null, "GET")
+		myFetch('secure/user/search/' + search, null, "GET")
 			.then(function (data) {
 				//Autocomplete mit Search Daten füllen
 				let source = data.data;
@@ -233,7 +241,7 @@ function searchForUserName(search, element) {
 			}) // JSON from `response.json()` call
 			.catch(error => console.error(error));
 
-			element.classList.remove("loading");
+		element.classList.remove("loading");
 	}
 }
 
@@ -264,7 +272,7 @@ function getLitsts() {
  * @param id
  */
 function showListDetails(id) {
-	myFetch('secure/list/'+id, null, "GET")
+	myFetch('secure/list/' + id, null, "GET")
 		.then(function (data) {
 			let list = data.list;
 			document.querySelector("#listEditID").value = list._id;
@@ -279,15 +287,15 @@ function showListDetails(id) {
 }
 
 /**
-	* Details zu den List-Members wegen geteilter Listen
-	* @param id
-*/
-function loadListMemberShip(id){
-	myFetch('secure/list_membership/'+id, null, "GET")
+ * Details zu den List-Members wegen geteilter Listen
+ * @param id
+ */
+function loadListMemberShip(id) {
+	myFetch('secure/list_membership/' + id, null, "GET")
 		.then(function (data) {
 			let memberList = "Leider keine Benutzer gefunden..."
 			let members = data.membership;
-			for(let i = 0; i<members.length;i++){
+			for (let i = 0; i < members.length; i++) {
 				memberList = `<p>${members[i].user} <a href="javascript:void(0)" onclick='deleteListMemberShip("${members[i].user}")'><i class='fas fa-trash'></i></a></p>`;
 			}
 			document.querySelector("#listEditMembers").innerHTML = memberList;
@@ -295,38 +303,39 @@ function loadListMemberShip(id){
 }
 
 /**
-	* Member zu Liste hinzufügen
-	*	@param username
-*/
-function addMemberToList(username){
+ * Member zu Liste hinzufügen
+ *    @param username
+ */
+function addMemberToList(element) {
 	let id = document.querySelector("#listEditID").value;
-	myFetch('secure/list_membership/', {username: username, listId: id}, "POST")
+	myFetch('secure/list_membership/', {username: element.value, listId: id}, "POST")
 		.then(function () {
+			element.value = "";
 			loadListMemberShip(id);
 		});
 }
 
 /**
-	* Member von Liste entfernen
-	* @param username
-	* @param id --> ID der Liste von die der User entfernt werden soll
-*/
+ * Member von Liste entfernen
+ * @param username
+ * @param id --> ID der Liste von die der User entfernt werden soll
+ */
 
 //TODO Bla
-function deleteListMemberShip(userName){
+function deleteListMemberShip(userName) {
 	let listId = document.querySelector("#listEditID").value;
-	myFetch('secure/list_membership/'+listId, null, "GET")
+	myFetch('secure/list_membership/' + listId, null, "GET")
 		.then(function (data) {
 			let membership = data.membership;
 			let userPos = -1;
-			for(let i = 0; i<membership.length;i++){
-				if(membership[i].user === userName){
+			for (let i = 0; i < membership.length; i++) {
+				if (membership[i].user === userName) {
 					userPos = i;
 					break;
 				}
 			}
 
-			myFetch('secure/list_membership/'+membership[userPos]._id, null, "DELETE")
+			myFetch('secure/list_membership/' + membership[userPos]._id, null, "DELETE")
 				.then(function () {
 					new PNotify({
 						text: 'Die Liste wurde gelöscht.',
@@ -359,14 +368,14 @@ function showLists() {
  * Liste Updaten
  * Wird beim Clicken des Buttons im Modal aufgerufen
  */
-function updateList(){
+function updateList() {
 	let id = document.querySelector("#listEditID").value;
 	let data = {
 		title: document.querySelector("#listEditName").value,
 		description: document.querySelector("#listEditFreetext").value,
 	};
 
-	myFetch('secure/list/'+id, data, "PATCH")
+	myFetch('secure/list/' + id, data, "PATCH")
 		.then(function (data) {
 			new PNotify({
 				text: 'Die Liste wurde aktualisiert.',
@@ -384,16 +393,31 @@ function updateList(){
 function deleteList() {
 	let id = document.querySelector("#listEditID").value;
 
-	if(confirm("Liste wirklich löschen?")){
-		myFetch('secure/list/'+id, null, "DELETE")
-			.then($('#listDetailsModal').modal("toggle"))
+	new PNotify({
+		title: 'Liste löschen?',
+		text: 'Soll die Liste wirklich gelöscht werden?',
+		icon: 'far fa-question-circle',
+		hide: false,
+		confirm: {
+			confirm: true
+		},
+		buttons: {
+			closer: false,
+			sticker: false
+		},
+		history: {
+			history: false
+		}
+	}).get().on('pnotify.confirm', function() {
+		myFetch('secure/list/' + id, null, "DELETE")
+			.then($('#listDetailsModal').modal("close"))
 			.then(
 				new PNotify({
 					text: 'Die Liste wurde gelöscht.',
 					type: 'warning'
 				})
 			).then(getLitsts());
-	}
+	});
 }
 
 /**
@@ -414,6 +438,7 @@ function addNewList(element) {
 			.catch(error => console.error(error));
 	}
 }
+
 //endregion
 
 //region Element / Entry
@@ -425,7 +450,7 @@ function addNewList(element) {
 function getElementsFromList(listID) {
 
 
-	myFetch('secure/list_entry/getall/'+listID,null, "GET")
+	myFetch('secure/list_entry/getall/' + listID, null, "GET")
 		.then(function (data) {
 			document.querySelector("#myCurrentList").value = listID;
 
@@ -446,14 +471,14 @@ function getElementsFromList(listID) {
 			for (let i = 0; i < entries.length; i++) {
 				let dat = entries[i];
 
-				if(dat.isDone === true){
+				if (dat.isDone === true) {
 					ulDone.innerHTML += `<li class="listElementOld">${dat.title}</li>`;
 
 				}
-				else{
+				else {
 					bgColorCount++
 					let bgClass = null;
-					if(bgColorCount % 2 === 0){
+					if (bgColorCount % 2 === 0) {
 						bgClass = "liBgColor";
 					}
 
@@ -471,7 +496,7 @@ function getElementsFromList(listID) {
  * Details von einem Element
  */
 function getElementDetails(id) {
-	myFetch('secure/list_entry/'+id,null, "GET")
+	myFetch('secure/list_entry/' + id, null, "GET")
 		.then(function (data) {
 			let element = data;
 
@@ -493,14 +518,14 @@ function getElementDetails(id) {
  * @param id
  */
 function checkElement(id) {
-	let element = document.querySelector("#checkElementSquare_"+id);
+	let element = document.querySelector("#checkElementSquare_" + id);
 
-	if(element.classList.contains("fa-check-square")){
-		myFetch('secure/list_entry/check/'+id, {isDone: false}, "POST");
+	if (element.classList.contains("fa-check-square")) {
+		myFetch('secure/list_entry/check/' + id, {isDone: false}, "POST");
 		element.className = "far fa-square";
 	}
-	else{
-		myFetch('secure/list_entry/check/'+id, {isDone: true}, "POST");
+	else {
+		myFetch('secure/list_entry/check/' + id, {isDone: true}, "POST");
 		element.className = "far fa-check-square";
 	}
 
@@ -517,7 +542,7 @@ function deleteElement() {
 	let listID = document.querySelector("#myCurrentList").value;
 	let id = document.querySelector("#elementEditID").value;
 
-	myFetch('secure/list_entry/'+id, null, "DELETE")
+	myFetch('secure/list_entry/' + id, null, "DELETE")
 		.then(function () {
 			new PNotify({
 				text: 'Das Element wurde gelöscht',
@@ -538,13 +563,13 @@ function updateElement() {
 
 	let data = {
 		title: document.querySelector("#elementEditName").value,
-		deadline: moment(document.querySelector("#elementEditTimePicker").value,"DD.MM.YYYY").toJSON(),
+		deadline: moment(document.querySelector("#elementEditTimePicker").value, "DD.MM.YYYY").toJSON(),
 		place: document.querySelector("#elementEditOrt").value,
 		description: document.querySelector("#elementEditFreetext").value,
 		assignTo: document.querySelector("#elementEditUserSearch").value,
 	};
 
-	myFetch('secure/list_entry/'+id, data, "PATCH")
+	myFetch('secure/list_entry/' + id, data, "PATCH")
 		.then(function (data) {
 			new PNotify({
 				text: 'Das Element wurde aktualisiert.',
@@ -577,6 +602,7 @@ function addNewElement(element) {
 			});
 	}
 }
+
 //endregion
 //region User
 /**
@@ -596,10 +622,12 @@ function getUserData() {
 			document.querySelector("#user_email").value = user.email;
 			document.querySelector("#user_backgroundcolor").value = user.color;
 			document.querySelector("#user_geburtsdatum").value = moment(user.gebDate).format("DD.MM.YYYY");
+
+			setBackgroundColor(user.color);
 		});
 }
 
-$("#form-user-data").submit(function(e){
+$("#form-user-data").submit(function (e) {
 	e.preventDefault();
 
 	let update = {
@@ -609,29 +637,28 @@ $("#form-user-data").submit(function(e){
 		"ort": document.querySelector("#user_ort").value,
 		"email": document.querySelector("#user_email").value,
 		"color": document.querySelector("#user_backgroundcolor").value,
-		"gebDate": moment(document.querySelector("#user_geburtsdatum").value,"DD.MM.YYYY").toJSON(), //da Backend einen JSON Datumsobject benötigt
+		"gebDate": moment(document.querySelector("#user_geburtsdatum").value, "DD.MM.YYYY").toJSON(), //da Backend einen JSON Datumsobject benötigt
 	};
 
 	let password = document.querySelector("#user_password").value;
 	let password_check = document.querySelector("#user_password_check").value;
 
 
-	if(password !== ""){
+	if (password !== "") {
 		update.password = password;
 	}
 
-	if(password_check === password){
-		myFetch('secure/user', update , "POST")
+	if (password_check === password) {
+		myFetch('secure/user', update, "POST")
 			.then(function (data) {
 				new PNotify({
 					text: 'Die geänderten Daten wurden gespeichert',
 					type: 'success'
 				});
 				getUserData();
-				setBackgroundColor(data.newUser.color);
 			});
 	}
-	else{
+	else {
 		new PNotify({
 			text: 'Die Passwörter stimmen nicht überein.',
 			type: 'warning'
@@ -648,4 +675,5 @@ function setBackgroundColor(color) {
 	if (color !== null && color !== undefined)
 		document.querySelector("body").style.background = color;
 }
+
 //endregion

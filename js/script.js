@@ -644,7 +644,7 @@ function getUserData() {
 			document.querySelector("#user_name").value = user.name;
 			document.querySelector("#user_anschrift").value = user.strasse;
 			document.querySelector("#user_plz").value = user.plz;
-			document.querySelector("#user_ort").value = user.place;
+			document.querySelector("#user_ort").value = user.ort;
 			document.querySelector("#user_email").value = user.email;
 			document.querySelector("#user_backgroundcolor").value = user.color;
 			document.querySelector("#user_geburtsdatum").value = moment(user.gebDate).format("DD.MM.YYYY");
@@ -660,7 +660,7 @@ $("#form-user-data").submit(function (e) {
 		"name": document.querySelector("#user_name").value,
 		"strasse": document.querySelector("#user_anschrift").value,
 		"plz": document.querySelector("#user_plz").value,
-		"place": document.querySelector("#user_ort").value,
+		"ort": document.querySelector("#user_ort").value,
 		"email": document.querySelector("#user_email").value,
 		"color": document.querySelector("#user_backgroundcolor").value,
 		"gebDate": moment(document.querySelector("#user_geburtsdatum").value, "DD.MM.YYYY").toJSON(), //da Backend einen JSON Datumsobject benötigt

@@ -101,7 +101,7 @@ $(function () {
 
 //Globale Einstellungen für notify für die Darstellung von Meldungen
 	PNotify.prototype.options.delay = 2000;
-	PNotify.prototype.options.addclass = "stack-bottomright";
+	//PNotify.prototype.options.addclass = "stack-bottomright";
 //automatische prüfen des Logins
 	login();
 });

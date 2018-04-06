@@ -101,7 +101,7 @@ $(function () {
 
 //Globale Einstellungen für notify für die Darstellung von Meldungen
 	PNotify.prototype.options.delay = 2000;
-	//PNotify.prototype.options.addclass = "stack-bottomright";
+	PNotify.prototype.options.addclass = "stack-bottomright";
 //automatische prüfen des Logins
 	login();
 });
@@ -448,16 +448,22 @@ function addNewList(element) {
  * @param listID
  */
 function getElementsFromList(listID) {
+	myFetch('secure/list/' + listID, null, "GET")
+		.then(function (data) {
+			let list = data.list;
+			document.querySelector("#listNameHeading").innerHTML = list.title;
+			loadListMemberShip(list._id);
+		});
 
 
 	myFetch('secure/list_entry/getall/' + listID, null, "GET")
 		.then(function (data) {
+
 			document.querySelector("#myCurrentList").value = listID;
 
 			document.querySelector("#showElements").style.display = "block";
 			document.querySelector("#showListen").style.display = "none";
 
-			//document.querySelector("#listNameHeading").innerHTML = data['name'];
 
 			let ul = document.querySelector("#listElements-element-ul");
 			ul.innerHTML = "<br>";
@@ -505,12 +511,15 @@ function getElementDetails(id) {
 			document.querySelector("#elementEditTimePicker").value = moment(element.deadline).format("DD.MM.YYYY");
 			document.querySelector("#elementEditFreetext").value = element.description;
 			document.querySelector("#elementEditID").value = element._id;
-			document.querySelector("#elementEditUserSearch").value = element.assignTo.username;
+
+			if(element.assignTo !== undefined){
+				document.querySelector("#elementEditUserSearch").value = element.assignTo.username;
+			}
+
 
 //Details anzeigen in Modal
 			$('#elementsDetailsModal').modal("toggle");
-		}) // JSON from `response.json()` call
-		.catch(error => console.error(error));
+		});
 }
 
 /**

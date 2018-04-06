@@ -39,7 +39,7 @@ function myFetch(backendMethod, data, type) {
 		type: type,
 		async: false,
 		cache: false,
-		timeout: 30000,
+		timeout: 5000,
 		data: data,
 		//wird für die Authentifizierung benötigt
 		beforeSend: function(request) {
@@ -61,8 +61,6 @@ function myFetch(backendMethod, data, type) {
 
 	return res;
 }
-
-
 
 /**
  * Onload mit jQuery
@@ -290,7 +288,7 @@ function loadListMemberShip(id){
 			let memberList = "Leider keine Benutzer gefunden..."
 			let members = data.membership;
 			for(let i = 0; i<members.length;i++){
-				memberList = `<p>${members[i].user} <a href="javascript:void(0)" onclick='deleteListMemberShip("${members[i]._id}")'><i class='fas fa-trash'></i></a></p>`;
+				memberList = `<p>${members[i].user} <a href="javascript:void(0)" onclick='deleteListMemberShip("${members[i].user}")'><i class='fas fa-trash'></i></a></p>`;
 			}
 			document.querySelector("#listEditMembers").innerHTML = memberList;
 		});
@@ -315,12 +313,30 @@ function addMemberToList(username){
 */
 
 //TODO Bla
+function deleteListMemberShip(userName){
+	let listId = document.querySelector("#listEditID").value;
+	myFetch('secure/list_membership/'+listId, null, "GET")
+		.then(function (data) {
+			let membership = data.membership;
+			let userPos = -1;
+			for(let i = 0; i<membership.length;i++){
+				if(membership[i].user === userName){
+					userPos = i;
+					break;
+				}
+			}
 
-function deleteListMemberShip(id){
-	myFetch('secure/list_membership/'+id, null, "DELETE")
-		.then(function () {
-			loadListMemberShip(id);
+			myFetch('secure/list_membership/'+membership[userPos]._id, null, "DELETE")
+				.then(function () {
+					new PNotify({
+						text: 'Die Liste wurde gelöscht.',
+						type: 'warning'
+					})
+					loadListMemberShip(listId);
+				});
 		});
+
+
 }
 
 /**
@@ -464,7 +480,7 @@ function getElementDetails(id) {
 			document.querySelector("#elementEditTimePicker").value = moment(element.deadline).format("DD.MM.YYYY");
 			document.querySelector("#elementEditFreetext").value = element.description;
 			document.querySelector("#elementEditID").value = element._id;
-			document.querySelector("#elementEditUserSearch").value = element.assignTo;
+			document.querySelector("#elementEditUserSearch").value = element.assignTo.username;
 
 //Details anzeigen in Modal
 			$('#elementsDetailsModal').modal("toggle");
@@ -621,9 +637,6 @@ $("#form-user-data").submit(function(e){
 			type: 'warning'
 		});
 	}
-
-
-
 });
 
 

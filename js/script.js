@@ -48,7 +48,7 @@ function myFetch(backendMethod, data, type) {
 		error: function (error) {
 			console.log("error", error);
 			new PNotify({
-				text: 'Da lief wohl was schief..',
+				text: 'Du hast nicht genügend Rechte oder es ist ein anderer Fehler aufgetreten.',
 				type: 'error',
 			})
 			return false;
@@ -90,6 +90,14 @@ $(function () {
 			down: "fas fa-arrow-down"
 		},
 		format: "DD.MM.YYYY",
+	});
+
+	//Felder mit undefined beim clicken leeren.
+	$("input, textarea").click(function(e){
+		if(e.target.value === "undefined" || e.target.innerHTML === "undefined"){
+			$(this).val("");
+		}
+
 	});
 
 //EInstellungen des Colorpickers
@@ -267,7 +275,7 @@ function getLitsts() {
 			ul.innerHTML = "";
 			//Aufbauen der Listen
 			for (let i = 0; i < lists.length; i++) {
-				ul.innerHTML += `<li> <a href="javascript:void(0)" onclick="showListDetails('${lists[i]._id}')"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="getElementsFromList('${lists[i]._id}')">${lists[i].title}</a></li>`
+				ul.innerHTML += `<li> <a href="javascript:void(0)" onclick="showListDetails('${lists[i]._id}')"><i class="fas fa-pencil-alt"></i></a> <a href="javascript:void(0)" onclick="getElementsFromList('${lists[i]._id}','${lists[i].title}')">${lists[i].title}</a></li>`
 			}
 		});
 }
@@ -288,10 +296,9 @@ function showListDetails(id) {
 			document.querySelector("#listEditFreetext").value = list.description;
 
 			loadListMemberShip(list._id);
+			$('#listDetailsModal').modal("toggle");
 		});
-
 //Details Modal öffnen
-	$('#listDetailsModal').modal("toggle");
 }
 
 /**
@@ -453,14 +460,19 @@ function addNewList(element) {
  * Elemente von einer Liste mit ID xxx
  * @param listID
  */
-function getElementsFromList(listID) {
-	myFetch('secure/list/' + listID, null, "GET")
+function getElementsFromList(listID, listName = null) {
+/*	myFetch('secure/list/' + listID, null, "GET")
 		.then(function (data) {
 			let list = data.list;
-			document.querySelector("#listNameHeading").innerHTML = list.title;
+
 			loadListMemberShip(list._id);
 		});
-
+*/
+	//Namen einmal übergeben, sonst Null
+	//Listendetails nur von Owner, nicht von Usern einsehbar die nur geteilten Zugriff haben.
+	if(listName != null){
+		document.querySelector("#listNameHeading").innerHTML = listName;
+	}
 
 	myFetch('secure/list_entry/getall/' + listID, null, "GET")
 		.then(function (data) {

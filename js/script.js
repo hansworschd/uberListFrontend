@@ -244,19 +244,22 @@ function searchForUserName(search, element) {
 				//Autocomplete mit Search Daten füllen
 				let source = data.data;
 
-				console.log(source);
+				let typeahead = $(element).typeahead({
+					updater:function (item) {
 
-
-				$(element).typeahead({
-					afterSelect: function(){
-						addMemberToList(element)
-					},
-					source: source,
+						if(element.id !== "elementEditUserSearch"){
+							//Für Suche nach User in Liste
+							addMemberToList(element,item);
+						}
+						else{
+							//für die Suche im Element
+							return item;
+						}
+    			}
 				});
-
-			}) // JSON from `response.json()` call
-			.catch(error => console.error(error));
-
+				//Suchdaten müssen sepparat eingegeben werden, da sie sonst nicht aktualisiert werden.
+				$(element).data('typeahead').source = source;
+			});
 		element.classList.remove("loading");
 	}
 }
@@ -308,8 +311,11 @@ function showListDetails(id) {
 function loadListMemberShip(id) {
 	myFetch('secure/list_membership/' + id, null, "GET")
 		.then(function (data) {
-			let memberList = "Leider keine Benutzer gefunden..."
 			let members = data.membership;
+			let memberList = "";
+			if(members.length === 0){
+					memberList = "Leider keine anderen Benutzer gefunden..";
+			}
 			for (let i = 0; i < members.length; i++) {
 				memberList += `<p>${members[i].user} <a href="javascript:void(0)" onclick='deleteListMemberShip("${members[i].user}")'><i class='fas fa-trash'></i></a></p>`;
 			}
@@ -321,9 +327,9 @@ function loadListMemberShip(id) {
  * Member zu Liste hinzufügen
  *    @param username
  */
-function addMemberToList(element) {
+function addMemberToList(element,username) {
 	let id = document.querySelector("#listEditID").value;
-	myFetch('secure/list_membership/', {username: element.value, listId: id}, "POST")
+	myFetch('secure/list_membership/', {username: username, listId: id}, "POST")
 		.then(function () {
 			element.value = "";
 			loadListMemberShip(id);
@@ -530,7 +536,8 @@ function getElementDetails(id) {
 			document.querySelector("#elementEditFreetext").value = element.description;
 			document.querySelector("#elementEditID").value = element._id;
 
-			if(element.assignTo !== undefined){
+			//checken ob assignTo nicht gesetzt ist, da sonst ein Fehler auftritt!
+			if(element.assignTo !== undefined && element.assignTo !== null){
 				document.querySelector("#elementEditUserSearch").value = element.assignTo.username;
 			}
 
@@ -650,7 +657,6 @@ function getUserData() {
 			document.querySelector("#user_anschrift").value = user.strasse;
 			document.querySelector("#user_plz").value = user.plz;
 			document.querySelector("#user_ort").value = user.ort;
-			//document.querySelector("#user_telefon").value = user.telefonnummer;
 			document.querySelector("#user_email").value = user.email;
 			document.querySelector("#user_backgroundcolor").value = user.color;
 			document.querySelector("#user_geburtsdatum").value = moment(user.gebDate).format("DD.MM.YYYY");

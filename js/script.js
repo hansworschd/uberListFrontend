@@ -125,13 +125,11 @@ function login() {
 
 //Username und password lokal im Browser speichern, für späteren Login sinnvoll
 	if (username !== "") {
-
 		localStorage.setItem("uberListUsername", username);
 		localStorage.setItem("uberListPassword", password);
 	}
 
 	if (username === "") {
-
 		username = localStorage.getItem("uberListUsername");
 		password = localStorage.getItem("uberListPassword");
 	}
